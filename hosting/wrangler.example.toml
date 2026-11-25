@@ -1,0 +1,12 @@
+name = "team-price-monitor"
+main = "./worker.mjs"
+compatibility_date = "2026-11-01"
+
+[assets]
+directory = "../site"
+binding = "ASSETS"
+run_worker_first = ["/data/*", "/_publish"]
+
+[[r2_buckets]]
+binding = "QUOTES"
+bucket_name = "team-price-quotes"

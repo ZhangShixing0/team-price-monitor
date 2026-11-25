@@ -1,0 +1,13 @@
+node_modules/
+.state/
+site/data/
+out/
+test-results/
+.env
+.env.*
+*.log
+*.sqlite*
+*.tmp
+*.key
+*.pem
+__pycache__/

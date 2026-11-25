@@ -1,0 +1,16 @@
+{
+  "name": "team-price-monitor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Team 公开报价采集与快照发布",
+  "engines": { "node": ">=22.13.0" },
+  "scripts": {
+    "hourly": "node scripts/hourly.mjs",
+    "test": "node --test",
+    "preview": "node scripts/preview.mjs"
+  },
+  "dependencies": {
+    "playwright": "1.63.0"
+  }
+}

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' https://qn.ldxp.cn https://www.ldxp.cn https://wzyp.cn; base-uri 'none'; form-action 'none'">
+  <title>Team 比价</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#quotes">跳到报价</a>
+  <main>
+    <header>
+      <div class="heading">
+        <h1>Team 比价</h1>
+        <p>查看原店报价、库存和最近核验时间。</p>
+      </div>
+      <div class="update">
+        <span>上次完整核验</span>
+        <time id="checked-at">暂未取得</time>
+        <span id="coverage"></span>
+      </div>
+    </header>
+    <form id="filters" role="search" aria-label="筛选报价">
+      <label class="search">搜索商品或店铺
+        <input type="search" id="query" placeholder="输入商品名称或店名" maxlength="150" autocomplete="off">
+      </label>
+      <label>品牌
+        <select id="brand">
+          <option value="">全部品牌</option>
+          <option value="chatgpt">ChatGPT</option>
+          <option value="codex">Codex</option>
+          <option value="unknown">品牌待核验</option>
+        </select>
+      </label>
+      <label>库存
+        <select id="stock">
+          <option value="recent">近期核实有货</option>
+          <option value="all">含缺货与历史报价</option>
+        </select>
+      </label>
+      <label>排序
+        <select id="sort">
+          <option value="price_asc">原店价格升序</option>
+          <option value="price_desc">原店价格降序</option>
+          <option value="recent">最近核验优先</option>
+        </select>
+      </label>
+    </form>
+    <noscript><p>请开启 JavaScript 以读取和筛选报价。</p></noscript>
+    <p id="notice" class="notice" role="status" hidden></p>
+    <section id="quotes" aria-labelledby="result-count">
+      <div class="result-header">
+        <h2 id="result-count" aria-live="polite">正在读取报价…</h2>
+        <span>价格和权益以原店为准</span>
+      </div>
+      <ul id="rows" aria-label="报价列表"></ul>
+      <p id="empty" class="empty" hidden></p>
+      <nav id="pages" aria-label="报价分页" hidden>
+        <button id="previous" type="button">上一页</button>
+        <span id="page-number"></span>
+        <button id="next" type="button">下一页</button>
+      </nav>
+    </section>
+    <footer>“近期核实有货”仅展示近两小时核验且达到起购量的报价。不同倍率、交付方式和有效期请以商品标题与原店说明为准。</footer>
+  </main>
+</body>
+</html>

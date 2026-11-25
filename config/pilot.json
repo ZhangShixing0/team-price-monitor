@@ -1,0 +1,311 @@
+{
+  "schemaVersion": 1,
+  "selection": {
+    "referenceDate": "2026-11-18",
+    "sourceShopCount": 143,
+    "method": "按上一次完整定向刷新各店原始商品数降序、店铺代码升序排列，包含首尾等间距抽取20家；保留各店当时全部已知Team分类及缺货商品。"
+  },
+  "shops": [
+    {
+      "shopSlug": "83VQ1AAS",
+      "shopName": "诚心优选"
+    },
+    {
+      "shopSlug": "yuanAi",
+      "shopName": "元Ai"
+    },
+    {
+      "shopSlug": "1777",
+      "shopName": "玄奇仙市"
+    },
+    {
+      "shopSlug": "xiaoyanggpt",
+      "shopName": "小🐏阳AI精选店"
+    },
+    {
+      "shopSlug": "YD93JLNG",
+      "shopName": "xiaoxiao"
+    },
+    {
+      "shopSlug": "BOP1WKBD",
+      "shopName": "52XUEAI"
+    },
+    {
+      "shopSlug": "wuku",
+      "shopName": "老马AI（源头直供，招代理）"
+    },
+    {
+      "shopSlug": "BTNW",
+      "shopName": "比特拈花"
+    },
+    {
+      "shopSlug": "ton",
+      "shopName": "ton"
+    },
+    {
+      "shopSlug": "2E2KPQD1",
+      "shopName": "AI杂货"
+    },
+    {
+      "shopSlug": "Laofeng",
+      "shopName": "Gmail专卖店"
+    },
+    {
+      "shopSlug": "6GCAQ8JQ",
+      "shopName": "胡小阳的AI店铺（招代理）"
+    },
+    {
+      "shopSlug": "007xp",
+      "shopName": "007的小铺"
+    },
+    {
+      "shopSlug": "F51WX60H",
+      "shopName": "AI金牌供应商"
+    },
+    {
+      "shopSlug": "2425",
+      "shopName": "牛牛AI"
+    },
+    {
+      "shopSlug": "ttai",
+      "shopName": "天天AI优惠"
+    },
+    {
+      "shopSlug": "cola",
+      "shopName": "AI源头"
+    },
+    {
+      "shopSlug": "86CA7TA7",
+      "shopName": "人工智能小铺"
+    },
+    {
+      "shopSlug": "ikun666",
+      "shopName": "AI服务站"
+    },
+    {
+      "shopSlug": "YE9N6WYK",
+      "shopName": "Genius Booster|天才加油站"
+    }
+  ],
+  "scopes": [
+    {
+      "shopSlug": "007xp",
+      "goodsType": "card",
+      "categoryId": 180469,
+      "categoryName": "team"
+    },
+    {
+      "shopSlug": "1777",
+      "goodsType": "card",
+      "categoryId": 165087,
+      "categoryName": "Gp.t Plus 成品号 短质保"
+    },
+    {
+      "shopSlug": "1777",
+      "goodsType": "card",
+      "categoryId": 167832,
+      "categoryName": "Gp.t Team K12"
+    },
+    {
+      "shopSlug": "1777",
+      "goodsType": "card",
+      "categoryId": 271143,
+      "categoryName": "codex team"
+    },
+    {
+      "shopSlug": "2E2KPQD1",
+      "goodsType": "card",
+      "categoryId": 57083,
+      "categoryName": "G"
+    },
+    {
+      "shopSlug": "2E2KPQD1",
+      "goodsType": "card",
+      "categoryId": 262319,
+      "categoryName": "长效 | team"
+    },
+    {
+      "shopSlug": "2E2KPQD1",
+      "goodsType": "card",
+      "categoryId": 269551,
+      "categoryName": "时效｜team"
+    },
+    {
+      "shopSlug": "6GCAQ8JQ",
+      "goodsType": "card",
+      "categoryId": 50688,
+      "categoryName": "Codex（含接手机验证码）"
+    },
+    {
+      "shopSlug": "6GCAQ8JQ",
+      "goodsType": "card",
+      "categoryId": 53291,
+      "categoryName": "Business-team"
+    },
+    {
+      "shopSlug": "83VQ1AAS",
+      "goodsType": "card",
+      "categoryId": 162955,
+      "categoryName": "codex接马"
+    },
+    {
+      "shopSlug": "83VQ1AAS",
+      "goodsType": "card",
+      "categoryId": 162977,
+      "categoryName": "k12/team"
+    },
+    {
+      "shopSlug": "83VQ1AAS",
+      "goodsType": "card",
+      "categoryId": 162982,
+      "categoryName": "官网G-PLUS"
+    },
+    {
+      "shopSlug": "83VQ1AAS",
+      "goodsType": "card",
+      "categoryId": 162980,
+      "categoryName": "邮箱资源"
+    },
+    {
+      "shopSlug": "2425",
+      "goodsType": "card",
+      "categoryId": 178880,
+      "categoryName": "team"
+    },
+    {
+      "shopSlug": "2425",
+      "goodsType": "card",
+      "categoryId": 239527,
+      "categoryName": "team 5x"
+    },
+    {
+      "shopSlug": "2425",
+      "goodsType": "card",
+      "categoryId": 270065,
+      "categoryName": "GP-team"
+    },
+    {
+      "shopSlug": "86CA7TA7",
+      "goodsType": "card",
+      "categoryId": 166933,
+      "categoryName": "team"
+    },
+    {
+      "shopSlug": "BOP1WKBD",
+      "goodsType": "card",
+      "categoryId": 164368,
+      "categoryName": "G官方充值"
+    },
+    {
+      "shopSlug": "BOP1WKBD",
+      "goodsType": "card",
+      "categoryId": 164887,
+      "categoryName": "GP-T成品"
+    },
+    {
+      "shopSlug": "BTNW",
+      "goodsType": "card",
+      "categoryId": 199173,
+      "categoryName": "G 反代用"
+    },
+    {
+      "shopSlug": "BTNW",
+      "goodsType": "card",
+      "categoryId": 201663,
+      "categoryName": "G plus 代充"
+    },
+    {
+      "shopSlug": "cola",
+      "goodsType": "card",
+      "categoryId": 70363,
+      "categoryName": "Chat"
+    },
+    {
+      "shopSlug": "F51WX60H",
+      "goodsType": "card",
+      "categoryId": 196668,
+      "categoryName": "G-p-t Team 5X"
+    },
+    {
+      "shopSlug": "ikun666",
+      "goodsType": "card",
+      "categoryId": 222598,
+      "categoryName": "bugteam"
+    },
+    {
+      "shopSlug": "Laofeng",
+      "goodsType": "card",
+      "categoryId": 209524,
+      "categoryName": "💥GP team"
+    },
+    {
+      "shopSlug": "ton",
+      "goodsType": "card",
+      "categoryId": 157380,
+      "categoryName": "team"
+    },
+    {
+      "shopSlug": "ton",
+      "goodsType": "card",
+      "categoryId": 227673,
+      "categoryName": "5x team"
+    },
+    {
+      "shopSlug": "ton",
+      "goodsType": "card",
+      "categoryId": 241764,
+      "categoryName": "PLUS/Team/Free"
+    },
+    {
+      "shopSlug": "ttai",
+      "goodsType": "card",
+      "categoryId": 198474,
+      "categoryName": "周限Team"
+    },
+    {
+      "shopSlug": "ttai",
+      "goodsType": "card",
+      "categoryId": 273333,
+      "categoryName": "【GP‌τ】Team"
+    },
+    {
+      "shopSlug": "wuku",
+      "goodsType": "card",
+      "categoryId": 84952,
+      "categoryName": "GP-T"
+    },
+    {
+      "shopSlug": "xiaoyanggpt",
+      "goodsType": "card",
+      "categoryId": 229188,
+      "categoryName": "Codex-Team/K12/拼车/点数/镜像"
+    },
+    {
+      "shopSlug": "YD93JLNG",
+      "goodsType": "card",
+      "categoryId": 57598,
+      "categoryName": "codex plus（低价成品号）"
+    },
+    {
+      "shopSlug": "YE9N6WYK",
+      "goodsType": "card",
+      "categoryId": 208814,
+      "categoryName": "G.P.T"
+    },
+    {
+      "shopSlug": "yuanAi",
+      "goodsType": "card",
+      "categoryId": 30796,
+      "categoryName": "G 月卡 CDK"
+    },
+    {
+      "shopSlug": "yuanAi",
+      "goodsType": "card",
+      "categoryId": 203063,
+      "categoryName": "G team"
+    }
+  ],
+  "minimumIntervalMs": 350,
+  "budgetMs": 180000,
+  "concurrency": 2
+}
