@@ -1,28 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1080" height="460" viewBox="0 0 1080 460" role="img" aria-labelledby="title description">
-  <title id="title">同一款 ChatGPT Plus 个人月订阅的两家店铺报价</title>
-  <desc id="description">两张系在一起的价签分别写着示例店乙 76 元、示例店甲 90 元。店铺和价格均来自项目的虚构演示。</desc>
+  <title id="title">链动小铺跨店比价</title>
+  <desc id="description">2026 年 11 月 18 日历史归档中，143 家受查店铺里，31 家有 ChatGPT Plus 报价，11 家有 Pro 报价，22 家有 Team 报价。商家可销售多个套餐。</desc>
   <rect x="1" y="1" width="1078" height="458" rx="14" fill="#F6F3E9" stroke="#B8C4B5" stroke-width="2"/>
   <g font-family="'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif">
-    <text x="52" y="98" font-size="78" font-weight="650" letter-spacing="-3" fill="#163E35">ChatGPT Plus</text>
-    <text x="55" y="153" font-size="35" font-weight="500" fill="#3F5B50">个人订阅 · 1 个月</text>
-    <text x="1025" y="95" text-anchor="end" font-size="34" font-weight="600" fill="#456458">虚构报价示例</text>
-
-    <!-- The facing tag holes tie both shop prices to the same subscription. -->
-    <path d="M66 193H423L503 269V336L423 412H66Q52 412 52 398V207Q52 193 66 193Z" fill="#154C3D"/>
-    <path d="M657 193H1014Q1028 193 1028 207V398Q1028 412 1014 412H657L577 336V269Z" fill="#D9E8CE" stroke="#73947A" stroke-width="2"/>
-    <circle cx="462" cy="302" r="12" fill="#F6F3E9"/>
-    <circle cx="618" cy="302" r="12" fill="#F6F3E9" stroke="#73947A" stroke-width="2"/>
-    <path d="M462 303C499 257 541 238 566 253C608 280 548 359 523 344C499 329 554 271 618 302" fill="none" stroke="#9A663D" stroke-width="5" stroke-linecap="round"/>
-
-    <text x="92" y="251" font-size="34" font-weight="550" fill="#E0EDD9">示例店乙</text>
-    <g fill="#FFFFF1">
-      <text x="89" y="367" font-size="57" font-weight="500">¥</text>
-      <text x="134" y="369" font-size="122" letter-spacing="-6" font-weight="650">76</text>
+    <text x="52" y="93" font-size="70" font-weight="700" fill="#163E35">链动小铺跨店比价</text>
+    <g font-size="33" font-weight="550" fill="#456458">
+      <text x="55" y="153">ChatGPT 套餐 · 有报价的店铺</text>
+      <text x="1027" y="153" text-anchor="end">2026-11-18 历史归档</text>
     </g>
-    <text x="681" y="251" font-size="34" font-weight="550" fill="#385344">示例店甲</text>
-    <g fill="#173D30">
-      <text x="678" y="367" font-size="57" font-weight="500">¥</text>
-      <text x="723" y="369" font-size="122" letter-spacing="-6" font-weight="650">90</text>
+    <rect x="49" y="189" width="982" height="226" rx="12" fill="#154C3D"/>
+    <path d="M378 214V390 M704 214V390" stroke="#628574" stroke-width="2"/>
+    <g fill="#D6E9D1" font-size="40" font-weight="600">
+      <text x="82" y="254">Plus</text><text x="408" y="254">Pro</text><text x="734" y="254">Team</text>
+    </g>
+    <g fill="#FFFFF1" font-weight="650">
+      <text x="79" y="352" font-size="94">31<tspan dx="9" font-size="38">家</tspan></text>
+      <text x="405" y="352" font-size="94">11<tspan dx="9" font-size="38">家</tspan></text>
+      <text x="731" y="352" font-size="94">22<tspan dx="9" font-size="38">家</tspan></text>
+    </g>
+    <g fill="#AECF9B">
+      <rect x="82" y="378" width="248" height="9" rx="4"/>
+      <rect x="408" y="378" width="88" height="9" rx="4"/>
+      <rect x="734" y="378" width="176" height="9" rx="4"/>
     </g>
   </g>
 </svg>
