@@ -11,6 +11,7 @@ const stock = byId('stock');
 const brand = byId('brand');
 const sort = byId('sort');
 const change = byId('change');
+const advanced = byId('more-filters');
 const rows = byId('rows');
 const changeNames = { restocked: '本轮补货', price_drop: '同规格降价', first_seen: '首次发现' };
 const shopHosts = new Set(['wzyp.cn', 'ldxp.cn', 'www.ldxp.cn', 'pay.ldxp.cn']);
@@ -104,11 +105,9 @@ function setBrandOptions(products, desired) {
   brand.value = desired === '' || desired === 'all' ? '' : options.includes(desired) ? desired : initial;
 }
 
-function setPlanOptions(available, brandMatches) {
+function setPlanOptions(available) {
   if (!available.includes(selectedPlan)) selectedPlan = '';
-  const counts = new Map();
-  for (const p of brandMatches) counts.set(p.plan, (counts.get(p.plan) || 0) + 1);
-  const key = JSON.stringify([brand.value, available, [...counts.entries()], selectedPlan]);
+  const key = JSON.stringify([brand.value, available, selectedPlan]);
   if (key === planFilterKey) return;
   planFilterKey = key;
   const container = byId('plans');
@@ -118,11 +117,10 @@ function setPlanOptions(available, brandMatches) {
     return;
   }
   const buttons = ['', ...available].map(plan => {
-    const b = el('button', 'plan-option', plan ? plans[plan] : '全部套餐');
+    const b = el('button', 'plan-option', plan ? plans[plan] : '全部');
     b.type = 'button';
     b.dataset.plan = plan;
     b.setAttribute('aria-pressed', String(selectedPlan === plan));
-    b.append(el('span', 'option-count', plan ? counts.get(plan) || 0 : brandMatches.length));
     b.addEventListener('click', () => { selectedPlan = plan; applyFilters(); });
     return b;
   });
@@ -130,7 +128,7 @@ function setPlanOptions(available, brandMatches) {
   if (oldFocus !== null) buttons.find(b => b.dataset.plan === oldFocus)?.focus();
 }
 
-function quoteRow(product, now) {
+function quoteRow(product, group, now, openDetails) {
   const item = el('li', 'quote');
   const imageUrl = safeUrl(product.imageUrl, imageHosts);
   if (imageUrl) {
@@ -146,7 +144,7 @@ function quoteRow(product, now) {
     item.append(img);
     img.src = imageUrl;
   }
-  const details = el('div');
+  const body = el('div', 'quote-body');
   const title = el('div', 'title');
   const linkUrl = safeUrl(product.itemUrl, shopHosts, /^\/item\/[A-Za-z0-9_.-]+\/?$/);
   if (linkUrl) {
@@ -160,18 +158,35 @@ function quoteRow(product, now) {
     title.textContent = product.title;
   }
   const brandText = brands[product.brand] || brands.unknown;
-  const evidence = { description: '商品说明', category: '原店分类' }[product.brandEvidence] || '推断';
-  const identity = product.brandInferred && product.brand !== 'unknown' ? brandText + '（' + evidence + '）' : brandText;
-  const metadata = el('div', 'meta');
   const observed = observation(product);
-  metadata.append(el('span', null, product.shopName || product.shopToken), el('span', null, identity),
-    el('span', null, observed === product.observedAt ? '核验 ' + displayTime(observed) : '已随本轮完整复核'));
+  const details = el('details', 'quote-details');
+  details.dataset.quoteId = JSON.stringify([product.shopToken, product.goodsKey]);
+  details.open = openDetails.has(details.dataset.quoteId);
+  const summary = el('summary', 'quote-summary meta');
+  summary.append(el('span', 'shop-name', product.shopName || product.shopToken));
+  if (product.minQuantity > 1) summary.append(el('span', 'minimum', product.minQuantity + ' 件起购'));
+  summary.append(el('span', 'details-trigger', '详情'));
+  const facts = el('dl', 'quote-facts');
+  const fact = (label, value) => facts.append(el('dt', null, label), el('dd', null, value));
+  fact('商品规格', group.label);
+  if (!group.comparable) fact('比价条件', '部分规格仍待核对，价格为原店标价');
+  const evidence = { title: '商品标题', description: '商品说明', category: '原店分类' }[product.brandEvidence];
+  fact('所属套餐', brandText + ' ' + plans[product.plan] + (evidence ? '（依据' + evidence + '）' : ''));
+  fact('核验时间', displayTime(observed) + '（北京时间）');
+  if (Number.isSafeInteger(product.stockCount) && product.stockCount >= 0) fact('核验时库存', product.stockCount + ' 件');
   for (const [event, label] of Object.entries(changeNames)) {
     if (!hasChange(product, event)) continue;
-    const text = event === 'price_drop' ? label + ' · 原价 ' + (product.priceSymbol || '') + product.previousPrice : label;
-    metadata.append(el('span', 'change-tag', text));
+    fact('本轮变化', event === 'price_drop' ? label + ' · 原价 ' + (product.priceSymbol || '') + product.previousPrice : label);
   }
-  details.append(title, metadata);
+  details.append(summary, facts);
+  if (linkUrl) {
+    const viewItem = el('a', 'original-item', '查看原店商品 ↗');
+    viewItem.href = linkUrl;
+    viewItem.target = '_blank';
+    viewItem.rel = 'noopener noreferrer';
+    details.append(viewItem);
+  }
+  body.append(title, details);
   const numbers = el('div', 'numbers');
   const price = Number.isFinite(product.price)
     ? (product.priceSymbol || '') + product.price + (product.priceSymbol ? '' : '（币种待核）')
@@ -189,20 +204,44 @@ function quoteRow(product, now) {
   else if (Number.isFinite(product.stockCount) && product.stockCount === 0) inventory = '已缺货';
   else if (product.inStock === false) inventory = '暂不可购';
   else inventory = '库存未知';
-  numbers.append(el('span', 'price', price), el('span', 'inventory', inventory));
-  item.append(details, numbers);
+  const status = el('span', 'inventory', inventory);
+  const inventoryRecorded = ['archive', 'demo'].includes(current.manifest.source) || fresh(observed, now);
+  if (inventoryRecorded && typeof product.inStock === 'boolean') status.classList.add(product.inStock ? 'stock-yes' : 'stock-no');
+  numbers.append(el('span', 'price', price), status);
+  item.append(body, numbers);
   return item;
 }
 
-function renderGroup(group, now) {
-  const section = el('div', 'quote-group');
-  const header = el('div', 'group-header');
-  header.append(el('h3', null, brands[group.brand] + ' ' + plans[group.plan] + ' · ' + group.label),
-    el('span', null, (group.comparable ? '同规格比价' : '规格待核，仅列原店标价') + ' · ' + group.total + ' 条'));
-  const list = el('ul');
-  list.append(...group.products.map(product => quoteRow(product, now)));
-  section.append(header, list);
-  return section;
+function renderQuoteGroups(groups, now) {
+  const result = document.createDocumentFragment();
+  const openDetails = new Set([...rows.querySelectorAll('.quote-details[open]')].map(d => d.dataset.quoteId));
+  let previous, list;
+  for (const group of groups) {
+    const newPlan = previous?.brand !== group.brand || previous?.plan !== group.plan;
+    const planName = brands[group.brand] + ' ' + plans[group.plan];
+    if (newPlan || group.comparable || previous.comparable) {
+      const section = el('div', 'quote-group');
+      list = el('ul');
+      list.setAttribute('aria-label', planName + '报价');
+      if (group.comparable && group.total > 1) {
+        const header = el('div', 'group-header');
+        const label = selectedPlan && brand.value ? group.label : planName + ' · ' + group.label;
+        header.append(el('h3', null, label), el('span', null, '同规格 · ' + group.total + ' 条'));
+        section.append(header);
+      } else if (newPlan && (!selectedPlan || !brand.value)) {
+        const header = el('div', 'group-header plan-heading');
+        header.append(el('h3', null, planName));
+        section.append(header);
+      }
+      section.append(list);
+      result.append(section);
+    }
+    // Keep the original price order inside each spec group. Only the visual
+    // listing is continuous when the underlying offers cannot be compared.
+    list.append(...group.products.map(product => quoteRow(product, group, now, openDetails)));
+    previous = group;
+  }
+  return result;
 }
 
 function render() {
@@ -210,17 +249,18 @@ function render() {
   const notice = byId('notice');
   let message = loadError;
   if (!message && current?.manifest.source === 'demo') {
-    message = '演示模式。商品、价格和库存均为虚构，可试用筛选和排序。';
+    message = '离线演示 · 虚构报价';
   } else if (!message && current?.manifest.source === 'archive') {
-    message = '以下为历史采集时的原店标价，库存待复核。';
+    message = '历史报价';
   } else if (!message && current && !fresh(current.manifest.checkedAt, now)) {
-    message = '以下为上次核验的原店标价，库存待复核。';
+    message = '库存待复核';
   }
   if (current?.manifest.schemaVersion === 1) {
     message = [message, '旧版快照仅含 Team，品牌归属和规格待复核。'].filter(Boolean).join(' ');
   }
   notice.textContent = message;
   notice.hidden = !message;
+  notice.classList.toggle('notice-error', Boolean(loadError));
   const empty = byId('empty');
   if (!current) {
     byId('result-count').textContent = loadError ? '暂无可读取的报价' : '正在读取报价…';
@@ -236,11 +276,19 @@ function render() {
     return words.every(word => haystack.includes(word));
   });
   const brandMatches = pool.filter(p => !brand.value || p.brand === brand.value);
-  setPlanOptions(availablePlans(current.products, brand.value, current.manifest.schemaVersion), brandMatches);
+  setPlanOptions(availablePlans(current.products, brand.value, current.manifest.schemaVersion));
   const matches = brandMatches.filter(p => !selectedPlan || p.plan === selectedPlan);
   const groups = groupQuotes(matches, sort.value, observation);
   const shops = new Set(matches.map(product => product.shopToken));
+  byId('results-title').textContent = selectedPlan ? plans[selectedPlan] + ' 报价' : '全部报价';
   byId('result-count').textContent = matches.length + ' 件商品 · ' + shops.size + ' 家店铺';
+  const advancedCount = Number(stock.value !== defaultStock(current.manifest)) + Number(Boolean(change.value));
+  const badge = byId('filter-count');
+  badge.hidden = advancedCount === 0;
+  badge.textContent = advancedCount ? String(advancedCount) : '';
+  advanced.querySelector('summary').setAttribute('aria-label',
+    advancedCount ? '筛选，已设置 ' + advancedCount + ' 项' : '筛选库存和本轮变化');
+  byId('reset-advanced').hidden = advancedCount === 0;
   const other = byId('other-team');
   const pending = brand.value === 'chatgpt' && selectedPlan === 'team' ? pool.filter(p => p.brand === 'unknown' && p.plan === 'team').length : 0;
   other.hidden = pending === 0;
@@ -248,11 +296,12 @@ function render() {
   const checked = byId('checked-at');
   checked.dateTime = current.manifest.checkedAt;
   checked.textContent = displayTime(current.manifest.checkedAt);
+  checked.parentElement.hidden = false;
   if (current.manifest.checkedFrom) checked.title = '本轮开始 ' + displayTime(current.manifest.checkedFrom);
-  byId('coverage').textContent = '采集范围 ' + current.manifest.shopCount + ' 家店';
+  byId('coverage').textContent = '本轮采集范围 · ' + current.manifest.shopCount + ' 家店';
   pages = Math.max(1, Math.ceil(matches.length / pageSize));
   page = Math.min(page, pages);
-  rows.replaceChildren(...groupsOnPage(groups, (page - 1) * pageSize, pageSize).map(g => renderGroup(g, now)));
+  rows.replaceChildren(renderQuoteGroups(groupsOnPage(groups, (page - 1) * pageSize, pageSize), now));
   if (change.value) empty.textContent = '符合当前筛选的报价里，没有已核实的「' + changeNames[change.value] + '」记录。';
   else if (stock.value === 'recent' && current.manifest.source === 'archive') empty.textContent = '这份归档只记录当时的库存。可选择「核验时有货」查看当时可买的商品。';
   else empty.textContent = '没有符合当前筛选的报价。可切换库存范围或清除关键词。';
@@ -325,6 +374,23 @@ for (const select of [stock, sort, change]) select.addEventListener('change', ()
   applyFilters();
 });
 brand.addEventListener('change', () => { selectedPlan = ''; applyFilters(); });
+byId('reset-advanced').addEventListener('click', () => {
+  explicitStock = false;
+  stock.value = defaultStock(current?.manifest);
+  change.value = '';
+  applyFilters();
+  advanced.open = false;
+  advanced.querySelector('summary').focus();
+});
+advanced.addEventListener('keydown', event => {
+  if (event.key === 'Escape') {
+    advanced.open = false;
+    advanced.querySelector('summary').focus();
+  }
+});
+document.addEventListener('click', event => {
+  if (advanced.open && !advanced.contains(event.target)) advanced.open = false;
+});
 byId('other-team').addEventListener('click', () => {
   brand.value = 'unknown'; selectedPlan = 'team'; applyFilters();
   byId('result-count').scrollIntoView({ block: 'nearest' });
@@ -345,7 +411,7 @@ if (!embeddedDemo) {
     byId('share-result').hidden = false;
     try {
       await navigator.clipboard.writeText(url);
-      byId('share-status').textContent = '已复制。将这个网址加入浏览器收藏，下次可回到当前筛选。';
+      byId('share-status').textContent = '链接已复制，打开后会保留当前筛选。';
     } catch {
       byId('share-status').textContent = '可手动复制下方网址，或在浏览器菜单中收藏当前页面。';
       field.value = url;
