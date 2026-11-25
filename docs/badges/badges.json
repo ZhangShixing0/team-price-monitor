@@ -1,0 +1,19 @@
+{
+  "style": "flat-square-v1",
+  "badges": [
+    {
+      "file": "version.svg",
+      "label": "Version",
+      "value": "0.1.0",
+      "category": "version",
+      "evidence": "../../package.json"
+    },
+    {
+      "file": "runtime.svg",
+      "label": "Node.js",
+      "value": "22.13+",
+      "category": "runtime",
+      "evidence": "../../package.json"
+    }
+  ]
+}

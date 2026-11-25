@@ -1,0 +1,2 @@
+# Immutable snapshots are addressed by the hash of their exact UTF-8 bytes.
+snapshots/*.json -text

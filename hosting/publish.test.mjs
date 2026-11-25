@@ -9,15 +9,16 @@ import { sendSnapshot } from './send.mjs';
 
 const sha = value => createHash('sha256').update(value).digest('hex');
 const time = hour => new Date(Date.UTC(2025, 5, 1, hour)).toISOString();
-function fixture(hour, price = hour) {
+function fixture(hour, price = hour, version = 1, attributes = {}) {
   const observedAt = time(hour);
   const products = [{ shopToken: 'shop', shopName: '示例', goodsKey: 'abc', title: 'Team 10X',
     price, priceSymbol: '¥', stockCount: 2, minQuantity: 1, inStock: true, brand: 'unknown',
     brandInferred: false, form: 'account', imageUrl: null, itemUrl: 'https://wzyp.cn/item/abc',
-    observedAt, changes: [], comparisonKey: null, specificationHash: null }];
-  const snapshot = JSON.stringify({schemaVersion: 1, checkedAt: observedAt, products}) + '\n';
+    observedAt, changes: [], comparisonKey: null, specificationHash: null,
+    ...(version === 2 ? {brand:'chatgpt', plan:'plus', brandEvidence:'title', specLabel:'成品账号'} : {}), ...attributes }];
+  const snapshot = JSON.stringify({schemaVersion: version, checkedAt: observedAt, products}) + '\n';
   const sha256 = sha(snapshot);
-  const manifest = { schemaVersion: 1, checkedFrom: observedAt, checkedAt: observedAt, productCount: 1,
+  const manifest = { schemaVersion: version, ...(version === 2 ? {source:'live'} : {}), checkedFrom: observedAt, checkedAt: observedAt, productCount: 1,
     shopCount: 1, scopeCount: 1, sha256, snapshot: 'snapshots/' + sha256 + '.json',
     semanticHash: sha(JSON.stringify(products.map(({observedAt, ...values}) => values))),
     seenHash: sha('[]'), historyComplete: true };
@@ -60,6 +61,21 @@ function site() {
   const read = name => request(url + '/data/' + name);
   return { QUOTES, url, request, post, read };
 }
+
+test('serves both generations and refuses archive uploads and contradictory v2 classifications', async () => {
+  const {post, read} = site();
+  const old = fixture(1), current = fixture(2, 1, 2);
+  assert.equal((await post(old)).status, 200);
+  assert.equal((await post({...current, manifest:{...current.manifest,source:'archive'}})).status, 400);
+  for (const attrs of [{plan:'max'}, {brand:'codex'}, {brandEvidence:'category'}, {specLabel:''}]) {
+    assert.equal((await post(fixture(2, 1, 2, attrs))).status, 400);
+  }
+  assert.deepEqual(await (await read('manifest.json')).json(), old.manifest);
+  assert.equal((await post(current)).status, 200);
+  assert.deepEqual(await (await read('manifest.json')).json(), current.manifest);
+  assert.equal(await (await read(old.manifest.snapshot)).text(), old.snapshot);
+  assert.equal((await post(fixture(3))).status, 409);
+});
 
 test('refuses invalid, unauthenticated or incomplete publication; reuses confirmed bytes on later round', async () => {
   const {post, read, QUOTES} = site();
@@ -131,4 +147,7 @@ test('sender is opt-in, avoids redirects and sends only a manifest for a previou
   assert.equal((await sendSnapshot(options)).unchanged, true);
   assert.deepEqual(calls,[false,true,false]);
   assert.deepEqual(await (await read('manifest.json')).json(), a.manifest);
+  await writeFile(join(dir,'manifest.json'), JSON.stringify({...a.manifest, schemaVersion:2, source:'archive'}));
+  await assert.rejects(sendSnapshot(options), /历史回放/);
+  assert.deepEqual(calls,[false,true,false]);
 });
