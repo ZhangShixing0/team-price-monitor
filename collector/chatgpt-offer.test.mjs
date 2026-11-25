@@ -1,8 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { classifyChatgptOffer } from './chatgpt-offer.mjs';
+import { classifyProduct } from './classifier.mjs';
 
 const route = (name, categoryName = '', descriptionText = '') => classifyChatgptOffer({ name, categoryName, descriptionText });
+
+test('calendar dates and quota reset windows cannot supply a purchased term', () => {
+  const clock = '【头车】10Xteam 19日8:00左右开踢 额度基本在500-1000刀';
+  assert.equal(classifyProduct({name:clock}).duration, null);
+  assert.equal(route(clock, 'GPT').specLabel, '10× · 头车');
+  const monthly = '月卡普通team席位，有周限有5小时 看运气';
+  assert.equal(route(monthly, 'GPT').specLabel, '席位 · 1个月');
+  assert.equal(classifyProduct({name:monthly}).restrictionFacts.usageWindow, true);
+  assert.match(route('ChatGPT Team 席位 7天，11月19日8点到期').specLabel, /7天/u);
+  assert.match(route('ChatGPT Team 席位 5小时').specLabel, /5小时/u);
+});
 
 test('route the product delivered, including merchant spelling, throughout all three plans', () => {
   for (const [title, plan] of [

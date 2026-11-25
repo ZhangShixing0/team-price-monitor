@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { titleDuration } from '../site/catalog-view.mjs';
 
 /**
  * Deterministic routing of unverified merchant claims. This is not a product
@@ -107,7 +108,7 @@ function hasMixedTeamPlans(title) {
   return false;
 }
 
-function restrictions(title, description) {
+function restrictions(title, description, durationClaims) {
   const all = `${title}\n${description}`;
   const feePositiveText = all.replace(/无额外(?:费用|收费)|不另收费/gu, '');
   const scheduled = /踢/u.test(all.replace(/(?:不|不会|永不)踢/gu, '')) || /定时移除|到期移除/u.test(all);
@@ -119,7 +120,8 @@ function restrictions(title, description) {
     codexUnsupported: /无法(?:使用|用)?\s*codex|不能(?:使用|用)?\s*codex|不支持\s*codex|不可(?:使用|用)?\s*codex/u.test(all),
     noAccountCredentials: /无账密|不提供(?:账号|账密)/u.test(all),
     scheduledRemoval: scheduled,
-    usageWindow: /\d+\s*小时\s*(?:限制|限额|窗口)|\d+\s*h\s*(?:限制|限额|窗口)/u.test(all),
+    usageWindow: durationClaims.some(claim => claim.role === 'usage_window') ||
+      /\d+\s*(?:小时|h)\s*(?:限制|限额|窗口)/u.test(all),
     indefiniteDurationClaim: /长效|长期|用到空间炸|不踢/u.test(all),
     rotatedOrOvernight: /二车|2车|三轮|过夜/u.test(all),
     qualityWarrantyExcluded: /不(?:质)?保[^\n]{0,15}(?:降智|降职|限流)/u.test(all),
@@ -130,30 +132,6 @@ function restrictions(title, description) {
   const labels = [];
   for (const [key, label] of Object.entries({ proxyOnly: '仅反代访问', webOnly: '仅网页访问', codexUnsupported: '不可使用Codex', noAccountCredentials: '不提供账号密码', scheduledRemoval: '定时移出，完整到期时间待核验', usageWindow: '存在用量窗口，非订阅时长', indefiniteDurationClaim: '长效承诺，期限待核验', rotatedOrOvernight: '轮转或过夜权益', qualityWarrantyExcluded: '不保降智或限流', promotionalPrice: '优惠计价待核验', monthlyFeeMention: '月费描述不代表购买时长', extraFeeMention: '可能存在额外费用' })) if (facts[key]) labels.push(label);
   return { facts, labels };
-}
-
-function titleDuration(title) {
-  const result = [];
-  const chinese = { 一个: 1, 一: 1, 两: 2, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, 十: 10 };
-  const units = { 小时: 'hour', 天: 'day', 日: 'day', 月: 'month', 年: 'year', hours: 'hour', hour: 'hour', h: 'hour', days: 'day', day: 'day', months: 'month', month: 'month', years: 'year', year: 'year' };
-  const pattern = /(?<amount>\d+|一个|两|二|一|三|四|五|六|七|八|九|十)\s*(?:个\s*)?(?<unit>小时|天|日|月|年|hours?\b|days?\b|months?\b|years?\b|h\b)/gu;
-  for (const match of title.matchAll(pattern)) {
-    const before = title.slice(Math.max(0, match.index - 14), match.index);
-    const clause = before.split(/[】\]）)｜|,，;；]/u).at(-1);
-    const after = title.slice(match.index + match[0].length, match.index + match[0].length + 12);
-    let role = 'duration';
-    if (/\d\s*[-~～至到]\s*$/u.test(before)) role = 'range_ambiguous';
-    else if (/质保|保修|保退|保障|warranty/u.test(clause) || /^(?:全面|全程)?(?:保修|质保|warranty)/u.test(after)) role = 'warranty';
-    else if (/^(?:限制|限额|窗口)/u.test(after)) role = 'usage_window';
-    else if (/^(?:优惠|折扣|资格)/u.test(after)) role = 'promotion';
-    result.push({ value: Number(match.groups.amount) || chinese[match.groups.amount], unit: units[match.groups.unit], text: match[0], source: 'title', role });
-  }
-  if (/月权益|月卡/u.test(title) && !result.some(claim => claim.role === 'duration')) result.push({ value: 1, unit: 'month', text: title.includes('月权益') ? '月权益' : '月卡', source: 'title', role: 'duration' });
-  const candidates = result.filter(claim => claim.role === 'duration');
-  const unique = new Map(candidates.map(claim => [`${claim.value}:${claim.unit}`, claim]));
-  const ambiguous = result.some(claim => claim.role === 'range_ambiguous') || unique.size > 1;
-  const selected = !ambiguous && unique.size === 1 ? [...unique.values()][0] : null;
-  return { duration: selected ? { value: selected.value, unit: selected.unit, text: selected.text, source: 'title' } : null, claims: result, ambiguous };
 }
 
 function explicitSpecification(product, title, form, facts) {
@@ -201,7 +179,8 @@ export function classifyProduct(input = {}) {
   let plan = 'unknown';
   if (team || business || chineseTeam) plan = brand === 'chatgpt' ? 'team_business' : business ? 'business' : 'team';
   else for (const candidate of ['plus', 'pro', 'free', 'ultra', 'max']) if (word(candidate, title)) { plan = candidate; break; }
-  const { facts, labels: restrictionLabels } = restrictions(title, description);
+  const parsedDuration = titleDuration(title);
+  const { facts, labels: restrictionLabels } = restrictions(title, description, parsedDuration.claims);
   const tutorial = /教程|教学|新手指南|使用指南|操作说明/u.test(title);
   const prerequisite = /team.{0,5}资格号|(?:\bfree\b|免费).{0,90}(?:可(?:开|用|加入|升级)|能(?:开通|加入)).{0,12}team/u.test(title);
   const admin = /母号|管理员|管理后台/u.test(title);
@@ -210,7 +189,6 @@ export function classifyProduct(input = {}) {
   const activation = /激活码|激活链接|兑换码/u.test(title) || word('cdk', title);
   const account = /成品号|成品账号/u.test(title);
   let form = tutorial ? 'tutorial' : prerequisite ? 'prerequisite' : facts.proxyOnly ? 'proxy' : renewal ? 'renewal' : activation && account ? 'mixed' : activation ? 'activation' : admin ? 'admin' : seat ? 'seat' : account ? 'account' : 'unknown';
-  const parsedDuration = titleDuration(title);
   const duration = parsedDuration.duration;
   const spec = explicitSpecification(product, title, form, facts);
   const categoryOnlyBlocked = categoryTeamEvidence && /\b(?:free|premium|pro|plus|ultra|go)\b|充值|代充/u.test(title) && !titleTeamEvidence;

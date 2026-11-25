@@ -15,62 +15,76 @@
   <main>
     <header>
       <div class="heading">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
         <h1>链动小铺 AI 订阅比价</h1>
       </div>
       <div class="update">
-        <span>上次完整核验（北京时间）</span>
-        <time id="checked-at">暂未取得</time>
-        <span id="coverage"></span>
+        <span id="notice" class="notice" role="status" hidden></span>
+        <span class="checked-time" hidden><time id="checked-at"></time> 核验（北京时间）</span>
       </div>
     </header>
     <form id="filters" role="search" aria-label="筛选报价">
-      <label>品牌
-        <select id="brand">
-          <option value="chatgpt">ChatGPT</option>
-          <option value="">全部品牌</option>
-        </select>
-      </label>
-      <fieldset class="plans"><legend>套餐</legend><div id="plans" role="group" aria-label="套餐筛选"></div></fieldset>
-      <label class="search">搜索商品或店铺
-        <input type="search" id="query" placeholder="输入商品名称或店名" maxlength="150" autocomplete="off">
-      </label>
-      <label>库存
-        <select id="stock">
-          <option value="recent">近期核实有货</option>
-          <option value="observed">核验时有货</option>
-          <option value="all">含缺货与历史报价</option>
-        </select>
-      </label>
-      <label>排序
-        <select id="sort">
-          <option value="price_asc">组内价格从低到高</option>
-          <option value="price_desc">组内价格从高到低</option>
-          <option value="recent">组内最近核验优先</option>
-        </select>
-      </label>
+      <div class="plan-toolbar">
+        <label class="brand-field"><span class="field-label">品牌</span>
+          <select id="brand">
+            <option value="chatgpt">ChatGPT</option>
+            <option value="">全部品牌</option>
+          </select>
+        </label>
+        <fieldset class="plans"><legend>套餐</legend><div id="plans" role="group" aria-label="套餐筛选"></div></fieldset>
+      </div>
+      <div class="search-toolbar">
+        <label class="search"><span class="field-label">搜索</span>
+          <input type="search" id="query" placeholder="搜商品或店铺" maxlength="150" autocomplete="off">
+        </label>
+        <label class="sort-field"><span class="field-label">排序</span>
+          <select id="sort">
+            <option value="price_asc">组内低价优先</option>
+            <option value="price_desc">组内高价优先</option>
+            <option value="recent">最近核验优先</option>
+          </select>
+        </label>
+        <details id="more-filters" class="more-filters">
+          <summary>筛选<span id="filter-count" class="filter-count" hidden></span></summary>
+          <div class="filter-panel">
+            <p class="filter-help">不同规格分别排序。商品详情里可以核对期限、起购量和核验时间。</p>
+            <label>库存
+              <select id="stock">
+                <option value="recent">近两小时核验有货</option>
+                <option value="observed">核验时有货</option>
+                <option value="all">全部库存状态</option>
+              </select>
+            </label>
+            <label>本轮变化
+              <select id="change">
+                <option value="">全部报价</option>
+                <option value="restocked">本轮补货</option>
+                <option value="price_drop">同规格降价</option>
+                <option value="first_seen">首次发现</option>
+              </select>
+            </label>
+            <button id="reset-advanced" type="button" hidden>重置这两项</button>
+          </div>
+        </details>
+      </div>
     </form>
     <noscript><p>请开启 JavaScript 以读取和筛选报价。</p></noscript>
-    <p id="notice" class="notice" role="status" hidden></p>
-    <section id="quotes" aria-labelledby="result-count">
+    <section id="quotes" aria-labelledby="results-title">
       <div class="result-header">
-        <h2 id="result-count" aria-live="polite">正在读取报价…</h2>
+        <div class="result-heading">
+          <h2 id="results-title">全部报价</h2>
+          <p id="result-count" aria-live="polite">正在读取报价…</p>
+        </div>
         <button id="other-team" type="button" hidden></button>
         <div class="quote-actions">
-          <label>本轮变化
-            <select id="change">
-              <option value="">全部报价</option>
-              <option value="restocked">本轮补货</option>
-              <option value="price_drop">同规格降价</option>
-              <option value="first_seen">首次发现</option>
-            </select>
-          </label>
-          <button id="copy-link" type="button" hidden>复制筛选链接</button>
+          <button id="copy-link" type="button" aria-label="复制当前筛选链接" hidden>复制链接</button>
         </div>
       </div>
       <div id="share-result" class="share-result" hidden>
         <p id="share-status" role="status"></p>
         <input id="share-url" type="url" readonly hidden aria-label="长按复制当前筛选网址">
       </div>
+      <div class="column-head" aria-hidden="true"><span>商品 / 店铺</span><span>原店标价 / 库存</span></div>
       <div id="rows"></div>
       <p id="empty" class="empty" hidden></p>
       <nav id="pages" aria-label="报价分页" hidden>
@@ -79,7 +93,7 @@
         <button id="next" type="button">下一页</button>
       </nav>
     </section>
-    <footer>“近期核实有货”展示近两小时核验且达到起购量的报价。</footer>
+    <footer><span id="coverage"></span></footer>
   </main>
 </body>
 </html>

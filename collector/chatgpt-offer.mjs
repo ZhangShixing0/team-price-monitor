@@ -89,8 +89,7 @@ function termLabels(title, classification) {
     const prefix = title.slice(Math.max(0, index - 12), index);
     const suffix = title.slice(index + duration.text.length, index + duration.text.length + 8);
     if (index >= 0 && !/(?:没有|非|无|不含|已活|已开|质保|保修|到账|充值耗时)\s*$/u.test(prefix)
-      && !/^(?:额度|上限|限额|限制|窗口|到账|自动|充值到账|内到账|内发货|后踢)/u.test(suffix)
-      && !/\d月\d+[日号]/u.test(title)) terms.add(String(duration.value) + units[duration.unit]);
+      && !/^(?:额度|上限|限额|限制|窗口|到账|自动|充值到账|内到账|内发货|后踢)/u.test(suffix)) terms.add(String(duration.value) + units[duration.unit]);
   }
   return [...terms];
 }

@@ -5,98 +5,186 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-foY9xhoqXDzj6gX2IvUqDqwzmWV/h5a3kXtdm1iU+7w=' 'sha256-1Ne9otCPCXiN4uFDKmmG3ICIDqDtHDYCyNCGFtEiPgg='; style-src 'sha256-Ivz1MflxAM43JqXAIiS6EV3qVvlhgNBNA9TH5ghKzo0='; base-uri 'none'; form-action 'none'; connect-src 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-ndxZFcGyzjKknVnFWY8/qwxcXeBc/L40sqCRkzE0Npo=' 'sha256-1Ne9otCPCXiN4uFDKmmG3ICIDqDtHDYCyNCGFtEiPgg='; style-src 'sha256-8qX70PY9Wbu4d1mtBACtI6jeyXj9lhwRRyemq/wPOUA='; base-uri 'none'; form-action 'none'; connect-src 'none'">
   <title>链动小铺 AI 订阅比价</title>
   <style>:root {
-  font: 16px/1.5 "DM Sans", "Microsoft YaHei", system-ui, sans-serif;
-  color: #192c2a;
-  background: #f5f7f3;
-  font-synthesis: none;
-  --green: #126454;
-  --muted: #506560;
-  --rule: #d4ded7;
+  color-scheme: light;
+  font: 16px/1.5 Inter, "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+  color: #1b322e;
+  background: #f4f7f5;
+  --green: #096c59;
+  --green-dark: #075342;
+  --muted: #51675f;
+  --rule: #dce6e0;
+  --soft-rule: #e8eee9;
+  --edge: clamp(16px, 3vw, 36px);
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-body { margin: 0; }
-main { width: min(1032px, calc(100% - 48px)); margin: auto; }
-header { display: flex; justify-content: space-between; align-items: end; gap: 24px; padding: 48px 0 28px; border-bottom: 3px solid var(--green); }
-h1, h2, p { margin: 0; }
-h1 { font-family: Georgia, "Songti SC", "SimSun", serif; font-size: clamp(2.5rem, 6vw, 4.1rem); line-height: 1.16; letter-spacing: -.035em; }
-.heading p { margin-top: 9px; color: var(--muted); }
-.update { display: grid; gap: 2px; text-align: right; color: var(--muted); font-size: .83rem; }
-.update time { color: var(--green); font-variant-numeric: tabular-nums; font-weight: 700; }
-form { display: grid; grid-template-columns: minmax(175px, 1.5fr) minmax(160px, 1fr) minmax(150px, 1fr); gap: 13px 20px; padding: 23px 0; }
-.plans { grid-column: span 2; min-width: 0; margin: 0; padding: 0; border: 0; }
-.plans legend { padding: 0; color: var(--muted); font-size: .85rem; margin-bottom: 5px; }
-#plans { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-height: 44px; }
-.plan-option { padding: 5px 13px; border-radius: 6px; background: #fff; white-space: nowrap; }
-.plan-option[aria-pressed="true"] { background: var(--green); color: #fff; border-color: var(--green); }
-.option-count { font-size: .76rem; margin-left: .45em; font-variant-numeric: tabular-nums; }
-.filter-hint { font-size: .85rem; color: var(--muted); }
-label { display: grid; gap: 5px; color: var(--muted); font-size: .85rem; }
-select, input, button { font: inherit; color: #192c2a; }
-select, input { width: 100%; min-height: 44px; padding: 8px 10px; font-size: .95rem; border: 1px solid #acbeb6; border-radius: 5px; background: #fff; }
-input::placeholder { color: #64736d; }
-:focus-visible { outline: 3px solid #159b7e; outline-offset: 2px; }
-.skip-link { position: absolute; top: 0; left: 8px; transform: translateY(-150%); padding: 8px; background: white; color: var(--green); }
-.skip-link:focus { transform: none; }
-.notice { background: #fff3dc; color: #77500c; padding: 10px 14px; border-left: 3px solid #dbaa49; margin-bottom: 16px; }
-section { background: #fff; border: 1px solid var(--rule); border-radius: 8px; }
-.result-header { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 18px; border-bottom: 1px solid var(--rule); background: #eaf1ec; border-radius: 7px 7px 0 0; }
-.quote-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-left: auto; }
-.quote-actions label { display: flex; align-items: center; white-space: nowrap; }
-.quote-actions select { width: auto; }
-.quote-actions button { min-height: 44px; color: var(--green); background: #fff; }
-.share-result { padding: 10px 18px; color: var(--green); font-size: .85rem; }
-.share-result input { margin-top: 5px; }
-.change-tag { color: var(--green); font-weight: 650; }
-h2 { font-size: 1.04rem; }
-.result-header span, .meta { font-size: .83rem; color: var(--muted); }
-#other-team { min-height: 32px; padding: 2px 0; background: transparent; color: var(--green); border: 0; font-size: .86rem; text-align: left; text-decoration: underline; text-underline-offset: 3px; }
-.group-header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 12px 18px; background: #f7f9f6; border-bottom: 1px solid var(--rule); }
-.quote-group + .quote-group { border-top: 1px solid var(--rule); }
-.group-header h3 { margin: 0; font-size: .92rem; font-weight: 650; line-height: 1.5; overflow-wrap: anywhere; }
-.group-header > span { flex-shrink: 0; max-width: 47%; font-size: .8rem; color: var(--muted); text-align: right; }
-ul { margin: 0; padding: 0; list-style: none; }
-.quote { display: grid; grid-template-columns: minmax(0,1fr) max-content; align-items: start; gap: 13px; padding: 16px 18px; }
-.quote.with-thumb { grid-template-columns: 54px minmax(0,1fr) max-content; }
-.quote + .quote { border-top: 1px solid #e1e8e2; }
-.thumb { display: block; width: 54px; height: 54px; object-fit: contain; border-radius: 6px; background: #f5f7f3; }
-.title { font-weight: 650; overflow-wrap: anywhere; }
+body, h1, h2, h3, p, ul, dl, dd { margin: 0; }
+ul { padding: 0; list-style: none; }
+button, input, select { font: inherit; color: inherit; }
+button, select, summary { cursor: pointer; }
+button { background: white; border: 1px solid var(--rule); border-radius: 8px; }
+button:disabled { opacity: .45; cursor: default; }
 a { color: var(--green); text-underline-offset: 3px; }
-.title a { color: inherit; text-decoration: none; }
-.title a:hover { color: var(--green); text-decoration: underline; }
-.meta { display: flex; flex-wrap: wrap; column-gap: 12px; row-gap: 2px; margin-top: 5px; overflow-wrap: anywhere; }
-.numbers { display: grid; justify-items: end; gap: 3px; text-align: right; font-variant-numeric: tabular-nums; }
-.price { color: var(--green); font-size: 1.27rem; font-weight: 750; line-height: 1.2; }
-.inventory { color: var(--muted); font-size: .8rem; }
-.empty { padding: 35px 18px; text-align: center; color: var(--muted); }
-nav { display: flex; justify-content: center; align-items: center; gap: 15px; padding: 15px; border-top: 1px solid var(--rule); color: var(--muted); }
-button { min-height: 40px; padding: 6px 13px; border: 1px solid var(--rule); border-radius: 5px; background: #f8faf8; cursor: pointer; }
-button:disabled { opacity: .48; cursor: default; }
-footer { margin: 18px 0 32px; color: var(--muted); font-size: .82rem; }
-@media (max-width: 730px) {
-  main { width: min(100% - 28px, 640px); }
-  header { padding-top: 28px; }
-  form { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+:focus-visible { outline: 3px solid #138977; outline-offset: 3px; }
+main { width: min(100%, 1192px); margin: auto; padding: 0 var(--edge) 28px; }
+.skip-link { position: fixed; z-index: 5; top: 4px; left: var(--edge); translate: 0 -150%; padding: 10px; background: white; }
+.skip-link:focus { translate: 0; }
+
+header {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  min-height: 76px; padding: 14px 0; background: white; border-bottom: 1px solid var(--rule);
+  box-shadow: 0 0 0 100vmax white; clip-path: inset(0 -100vmax);
 }
-@media (max-width: 525px) {
-  header { align-items: start; flex-direction: column; gap: 8px; padding: 20px 0 16px; }
-  h1 { font-size: clamp(1.65rem, 7.1vw, 2.2rem); }
-  .update { text-align: left; display: flex; flex-wrap: wrap; column-gap: 8px; }
-  form { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 16px 0; }
-  form label:first-child, .plans, .search { grid-column: 1 / -1; }
-  #plans { gap: 5px; }
-  .plan-option { padding: 4px 9px; }
-  .group-header { padding: 10px 11px; }
-  .result-header { flex-wrap: wrap; padding: 11px; }
-  .quote-actions { width: 100%; margin: 0; justify-content: space-between; }
-  .quote { grid-template-columns: minmax(0, 1fr); padding: 13px 11px; gap: 4px 9px; }
-  .quote.with-thumb { grid-template-columns: 40px minmax(0, 1fr); }
-  .thumb { width: 40px; height: 40px; }
+.heading { display: flex; align-items: center; gap: 12px; }
+h1 { font-size: clamp(1.15rem, 2vw, 1.48rem); letter-spacing: -.035em; font-weight: 700; line-height: 1.22; }
+.brand-mark {
+  flex: none; width: 36px; height: 36px; display: grid; align-content: center; gap: 4px;
+  padding: 0 8px; color: white; background: var(--green); border-radius: 10px;
+}
+.brand-mark i { display: block; height: 2px; border-radius: 2px; background: currentColor; }
+.brand-mark i:nth-child(2) { width: 75%; }
+.brand-mark i:nth-child(3) { width: 46%; }
+.update { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; color: var(--muted); font-size: .78rem; }
+.update time { font-variant-numeric: tabular-nums; }
+.notice { color: #805422; font-weight: 650; }
+.notice::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; background: #c58c40; }
+
+#filters { margin-top: 28px; border: 1px solid var(--rule); background: white; border-radius: 14px; box-shadow: 0 3px 14px #183e2c05; }
+.plan-toolbar, .search-toolbar { display: flex; align-items: center; gap: 18px; padding: 16px 22px; }
+.plan-toolbar { min-height: 68px; border-bottom: 1px solid var(--soft-rule); }
+.brand-field { display: flex; align-items: center; gap: 10px; }
+.brand-field .field-label { color: var(--muted); font-size: .81rem; }
+select, input { min-width: 0; max-width: 100%; min-height: 40px; background: white; border: 1px solid #c6d5cd; border-radius: 8px; padding: 6px 11px; }
+select { padding-right: 7px; font-size: .87rem; }
+.brand-field select { background: #f0f6f2; color: var(--green-dark); font-size: .91rem; font-weight: 650; }
+.plans { display: flex; align-items: center; border: 0; border-left: 1px solid var(--rule); margin: 0; padding: 0 0 0 18px; min-width: 0; }
+.plans legend, .search .field-label, .sort-field .field-label {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+#plans { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.plan-option { min-height: 38px; padding: 4px 16px; font-size: .93rem; font-weight: 600; background: transparent; border: 1px solid transparent; }
+.plan-option:hover { background: #f0f6f3; }
+.plan-option[aria-pressed="true"] { color: white; background: var(--green); }
+.filter-hint { color: var(--muted); font-size: .9rem; }
+.search-toolbar { gap: 10px; }
+.search { flex: 1; position: relative; min-width: 0; }
+.search::before, .search::after { content: ''; position: absolute; pointer-events: none; color: #59756a; }
+.search::before { width: 10px; height: 10px; left: 14px; top: calc(50% - 8px); border: 1.8px solid currentColor; border-radius: 50%; }
+.search::after { width: 7px; height: 1.8px; left: 24px; top: calc(50% + 5px); background: currentColor; transform: rotate(47deg); }
+.search input { width: 100%; background: #f8faf8; font-size: 1rem; padding-left: 38px; }
+input::placeholder { color: #62776e; }
+.sort-field select { min-height: 40px; }
+.more-filters { position: relative; }
+summary { list-style: none; }
+summary::-webkit-details-marker { display: none; }
+.more-filters > summary {
+  display: flex; align-items: center; justify-content: center; min-height: 40px; gap: 6px; border: 1px solid #c6d5cd;
+  padding: 6px 13px; border-radius: 8px; background: white; color: #334c41; font-size: .88rem;
+}
+.more-filters > summary::after, .details-trigger::after {
+  content: ''; width: 6px; height: 6px; border-right: 1.5px solid; border-bottom: 1.5px solid; transform: translateY(-2px) rotate(45deg);
+}
+.more-filters[open] > summary, .more-filters > summary:hover { background: #eef5f0; }
+.more-filters[open] > summary::after, .quote-details[open] .details-trigger::after { transform: translateY(1px) rotate(225deg); }
+.filter-count { font-variant-numeric: tabular-nums; color: var(--green); }
+.filter-panel {
+  position: absolute; right: 0; z-index: 2; top: calc(100% + 7px); width: min(265px, 78vw);
+  display: grid; gap: 14px; border: 1px solid #cedbd3; border-radius: 12px; padding: 16px; background: white; box-shadow: 0 8px 22px #15362c1a;
+}
+.filter-panel label { display: grid; gap: 5px; color: var(--muted); font-size: .83rem; }
+.filter-panel select { color: #1b322e; }
+.filter-help { color: var(--muted); font-size: .8rem; }
+#reset-advanced { min-height: 36px; color: var(--green); }
+
+.result-header { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin: 28px 0 13px; }
+.result-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+h2 { font-size: clamp(1.2rem, 2.3vw, 1.57rem); line-height: 1.32; letter-spacing: -.035em; font-weight: 710; }
+#result-count, #page-number { font-size: .85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.quote-actions { margin-left: auto; }
+#copy-link, #other-team { min-height: 36px; padding: 4px 9px; border-color: transparent; background: transparent; color: var(--green); font-size: .84rem; }
+#copy-link:hover, #other-team:hover { text-decoration: underline; }
+.share-result { margin: 0 0 10px; padding: 10px 14px; border-radius: 8px; background: #e5f0ea; font-size: .86rem; }
+.share-result input { width: 100%; margin-top: 8px; }
+.column-head { display: flex; justify-content: space-between; padding: 10px 23px; border: 1px solid var(--rule); border-bottom: 0; border-radius: 12px 12px 0 0; background: #eaf1ed; color: #50675d; font-size: .8rem; }
+.column-head:has(+ #rows:empty), #rows:empty { display: none; }
+#rows { overflow: clip; border: 1px solid var(--rule); border-radius: 0 0 12px 12px; background: white; }
+.group-header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; padding: 9px 22px; gap: 3px 12px; background: #f5f8f5; }
+.group-header h3 { font-size: .92rem; }
+.group-header > span { font-size: .8rem; color: var(--muted); }
+.quote + .quote, .quote-group + .quote-group { border-top: 1px solid var(--soft-rule); }
+.quote { display: grid; grid-template-columns: minmax(0, 1fr) max-content; align-items: start; gap: 16px; padding: 18px 22px 15px; }
+.quote.with-thumb { grid-template-columns: 56px minmax(0, 1fr) max-content; }
+.thumb { display: block; width: 56px; height: 56px; object-fit: contain; border: 1px solid var(--soft-rule); border-radius: 9px; background: #f7f9f7; }
+.quote-body { min-width: 0; }
+.title { font-size: 1rem; font-weight: 630; overflow-wrap: anywhere; line-height: 1.5; }
+.title a { color: #192f29; text-decoration: none; }
+.title a:hover, .title a:focus-visible { color: var(--green); text-decoration: underline; }
+.quote-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 12px; width: fit-content; min-height: 30px; margin-top: 3px; color: var(--muted); font-size: .83rem; }
+.shop-name { overflow-wrap: anywhere; }
+.minimum { color: #86531c; }
+.details-trigger { display: inline-flex; align-items: center; gap: 6px; color: var(--green); }
+.quote-summary:hover .details-trigger { text-decoration: underline; }
+.quote-facts { display: grid; grid-template-columns: max-content minmax(0,1fr); gap: 5px 14px; margin: 6px 0 3px; padding: 12px 14px; border-radius: 8px; background: #f2f6f3; font-size: .83rem; }
+.quote-facts dt { color: var(--muted); }
+.quote-facts dd { overflow-wrap: anywhere; }
+.original-item { display: inline-flex; align-items: center; min-height: 34px; font-size: .83rem; }
+.numbers { display: grid; justify-items: end; align-content: start; gap: 3px; text-align: right; font-variant-numeric: tabular-nums; }
+.price { color: var(--green); font-size: 1.4rem; line-height: 1.25; font-weight: 720; letter-spacing: -.025em; }
+.inventory { color: var(--muted); font-size: .78rem; white-space: nowrap; }
+.inventory::before { content: ''; display: inline-block; width: 6px; height: 6px; margin-right: 5px; vertical-align: 1px; border-radius: 50%; background: #91a198; }
+.inventory.stock-yes::before { background: #2b916a; }
+.empty { padding: 38px 20px; text-align: center; border: 1px solid var(--rule); border-radius: 12px; background: white; color: var(--muted); }
+#pages { display: flex; align-items: center; justify-content: center; gap: 15px; padding: 20px 0 4px; }
+#pages button { min-height: 40px; padding: 7px 15px; color: var(--green); }
+footer { margin-top: 22px; color: var(--muted); font-size: .8rem; text-align: right; }
+
+@media (max-width: 640px) {
+  :root { --edge: 14px; }
+  header { min-height: auto; flex-wrap: wrap; gap: 7px; padding: 15px 0 12px; }
+  .heading { gap: 9px; }
+  .brand-mark { width: 30px; height: 30px; padding: 0 7px; gap: 3px; border-radius: 8px; }
+  .update { width: 100%; font-size: .73rem; gap: 3px 7px; }
+  #filters { margin-top: 14px; border-radius: 11px; }
+  .plan-toolbar { min-height: 52px; padding: 8px 10px; gap: 8px; flex-wrap: wrap; }
+  .brand-field .field-label { position: absolute; width: 1px; height: 1px; clip-path: inset(50%); overflow: hidden; }
+  .brand-field select { min-height: 36px; max-width: 96px; font-size: .84rem; padding-left: 6px; }
+  .plans { padding-left: 7px; }
+  #plans { gap: 1px; }
+  .plan-option { padding: 5px 8px; font-size: .85rem; min-height: 36px; border-radius: 6px; }
+  .search-toolbar { display: grid; grid-template-columns: minmax(0,1fr) auto auto; padding: 9px 10px; gap: 5px; }
+  .search input { padding-left: 28px; padding-right: 2px; }
+  .search::before { left: 8px; }
+  .search::after { left: 18px; }
+  .sort-field select { padding-left: 3px; padding-right: 0; font-size: .76rem; }
+  .more-filters > summary { font-size: .8rem; padding: 4px 7px; }
+  .result-header { margin: 17px 0 8px; gap: 2px 8px; }
+  .result-heading { gap: 2px 7px; }
+  #result-count { font-size: .76rem; }
+  #copy-link { padding: 4px 2px; font-size: .78rem; }
+  .column-head { display: none; }
+  #rows { border-radius: 11px; }
+  .quote, .quote.with-thumb { grid-template-columns: minmax(0,1fr); gap: 5px 10px; padding: 13px 12px; }
+  .quote.with-thumb { grid-template-columns: 44px minmax(0,1fr); }
+  .thumb { width: 44px; height: 44px; border-radius: 7px; }
+  .title { font-size: .94rem; }
+  .quote-body:not(:has(.quote-details[open])) .title a { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .quote-summary { margin-top: 0; gap: 2px 9px; font-size: .77rem; }
+  .quote-facts { gap: 4px 7px; padding: 9px 8px; }
   .numbers { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; text-align: left; }
-  .with-thumb > .numbers { grid-column: 2; }
+  .with-thumb .numbers { grid-column: 2; }
+  .price { font-size: 1.25rem; }
+  .inventory { font-size: .74rem; }
+  .group-header { padding: 8px 12px; }
+}
+@media (max-width: 370px) {
+  :root { --edge: 10px; }
+  .plan-option { padding: 4px 6px; }
+  .plan-toolbar { padding-inline: 7px; gap: 5px; }
+  .plans { padding-left: 4px; }
+  .search-toolbar { padding-inline: 7px; }
 }
 </style>
   <script id="demo-data" type="application/json">{"manifest":{"source":"demo","schemaVersion":2,"checkedAt":"2020-01-01T00:00:00.000Z","snapshot":"snapshots/1aad4f2d13bc35d9c0c83f80f6706387f0c8b004cb0383af882f7b07f2ed3921.json","sha256":"1aad4f2d13bc35d9c0c83f80f6706387f0c8b004cb0383af882f7b07f2ed3921","shopCount":3,"productCount":8},"snapshot":{"schemaVersion":2,"checkedAt":"2020-01-01T00:00:00.000Z","products":[{"shopToken":"demo-甲","shopName":"示例店甲","goodsKey":"sample-1","brand":"chatgpt","plan":"plus","title":"ChatGPT Plus 个人订阅 · 1 个月","specLabel":"个人订阅 · 1 个月","comparisonKey":"plus-month","form":"subscription","price":90,"priceSymbol":"¥","minQuantity":1,"stockCount":4,"inStock":true,"observedAt":"2020-01-01T00:00:00.000Z"},{"shopToken":"demo-乙","shopName":"示例店乙","goodsKey":"sample-2","brand":"chatgpt","plan":"plus","title":"ChatGPT Plus 个人订阅 · 1 个月","specLabel":"个人订阅 · 1 个月","comparisonKey":"plus-month","form":"subscription","price":76,"priceSymbol":"¥","minQuantity":1,"stockCount":2,"inStock":true,"observedAt":"2020-01-01T00:00:00.000Z"},{"shopToken":"demo-乙","shopName":"示例店乙","goodsKey":"sample-3","brand":"chatgpt","plan":"plus","title":"ChatGPT Plus 个人订阅 · 1 年","specLabel":"个人订阅 · 1 年","comparisonKey":"plus-year","form":"subscription","price":800,"priceSymbol":"¥","minQuantity":1,"stockCount":1,"inStock":true,"observedAt":"2020-01-01T00:00:00.000Z"},{"shopToken":"demo-甲","shopName":"示例店甲","goodsKey":"sample-4","brand":"chatgpt","plan":"pro","title":"ChatGPT Pro 个人订阅 · 1 个月 · 5×","specLabel":"个人订阅 · 1 个月 · 5×","comparisonKey":"pro-5x","form":"subscription","price":240,"priceSymbol":"¥","minQuantity":1,"stockCount":3,"inStock":true,"observedAt":"2020-01-01T00:00:00.000Z"},{"shopToken":"demo-丙","shopName":"示例店丙","goodsKey":"sample-5","brand":"chatgpt","plan":"pro","title":"ChatGPT Pro 个人订阅 · 1 个月 · 20×","specLabel":"个人订阅 · 1 个月 · 20×","comparisonKey":"pro-20x","form":"subscription","price":600,"priceSymbol":"¥","minQuantity":1,"stockCount":2,"inStock":true,"observedAt":"2020-01-01T00:00:00.000Z"},{"shopToken":"demo-甲","shopName":"示例店甲","goodsKey":"sample-6","brand":"chatgpt","plan":"team","title":"ChatGPT Team 席位 · 1 个月 · 5×","specLabel":"席位 · 1 个月 · 5×","comparisonKey":"team-seat-5x","form":"seat","price":45,"priceSymbol":"¥","minQuantity":1,"stockCount":1,"inStock":true,"observedAt":"2020-01-01T00:00:00.000Z"},{"shopToken":"demo-丙","shopName":"示例店丙","goodsKey":"sample-7","brand":"chatgpt","plan":"team","title":"ChatGPT Team 席位 · 1 个月 · 5×","specLabel":"席位 · 1 个月 · 5×","comparisonKey":"team-seat-5x","form":"seat","price":35,"priceSymbol":"¥","minQuantity":1,"stockCount":2,"inStock":true,"observedAt":"2020-01-01T00:00:00.000Z"},{"shopToken":"demo-乙","shopName":"示例店乙","goodsKey":"sample-8","brand":"chatgpt","plan":"team","title":"ChatGPT Team 席位 · 期限待核","specLabel":"席位 · 期限待核","comparisonKey":null,"form":"seat","price":12,"priceSymbol":"¥","minQuantity":1,"stockCount":0,"inStock":false,"observedAt":"2020-01-01T00:00:00.000Z"}]}}</script>
@@ -104,19 +192,70 @@ footer { margin: 18px 0 32px; color: var(--muted); font-size: .82rem; }
 export const plans = { plus: 'Plus', pro: 'Pro', team: 'Team' };
 const compareText = new Intl.Collator('zh-CN', { numeric: true, sensitivity: 'base' }).compare;
 
+export function titleDuration(title) {
+  const result = [];
+  const chinese = { 一个: 1, 一: 1, 两: 2, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, 十: 10 };
+  const units = { 小时: 'hour', 天: 'day', 日: 'day', 月: 'month', 年: 'year', hours: 'hour', hour: 'hour', h: 'hour', days: 'day', day: 'day', months: 'month', month: 'month', years: 'year', year: 'year' };
+  const pattern = /(?<amount>\d+|一个|两|二|一|三|四|五|六|七|八|九|十)\s*(?:个\s*)?(?<unit>小时|天|日|月|年|hours?\b|days?\b|months?\b|years?\b|h\b)/gu;
+  for (const match of title.matchAll(pattern)) {
+    const before = title.slice(Math.max(0, match.index - 14), match.index);
+    const clause = before.split(/[】\]）)｜|,，;；]/u).at(-1);
+    const after = title.slice(match.index + match[0].length, match.index + match[0].length + 12);
+    const unit = match.groups.unit;
+    const calendarDate = unit === '年' && /^\s*\d{1,2}月/u.test(after)
+      || unit === '月' && /^\s*\d{1,2}[日号]/u.test(after)
+      || unit === '日' && (/\d{1,2}\s*月\s*$/u.test(before)
+        || /^\s*(?:上午|下午|中午|凌晨|早上|晚上|晚|早)?\s*(?:\d{1,2}\s*[:：点时]|开踢|移除|到期)/u.test(after));
+    const hourWindow = units[unit] === 'hour'
+      && /(?:周限额?|限额|额度|用量|配额|窗口)\s*(?:和|及|与|带|为|每|、|\/)?\s*有?\s*$/u.test(clause);
+    let role = 'duration';
+    if (calendarDate) role = 'calendar_date';
+    else if (/\d\s*[-~～至到]\s*$/u.test(before)) role = 'range_ambiguous';
+    else if (/质保|保修|保退|保障|warranty/u.test(clause) || /^(?:全面|全程)?(?:保修|质保|warranty)/u.test(after)) role = 'warranty';
+    else if (hourWindow || /^\s*(?:限制|限额|额度|窗口)/u.test(after)) role = 'usage_window';
+    else if (/^(?:优惠|折扣|资格)/u.test(after)) role = 'promotion';
+    result.push({ value: Number(match.groups.amount) || chinese[match.groups.amount], unit: units[match.groups.unit], text: match[0], source: 'title', role });
+  }
+  if (/月权益|月卡/u.test(title) && !result.some(claim => claim.role === 'duration')) result.push({ value: 1, unit: 'month', text: title.includes('月权益') ? '月权益' : '月卡', source: 'title', role: 'duration' });
+  const candidates = result.filter(claim => claim.role === 'duration');
+  const unique = new Map(candidates.map(claim => [`${claim.value}:${claim.unit}`, claim]));
+  const ambiguous = result.some(claim => claim.role === 'range_ambiguous') || unique.size > 1;
+  const selected = !ambiguous && unique.size === 1 ? [...unique.values()][0] : null;
+  return { duration: selected ? { value: selected.value, unit: selected.unit, text: selected.text, source: 'title' } : null, claims: result, ambiguous };
+}
+
 export function normalizeProducts(products, version) {
   const unique = new Map();
   for (const product of products) {
     const brand = Object.hasOwn(brands, product.brand) ? product.brand : 'unknown';
     const plan = version === 1 ? 'team' : product.plan;
     if (!Object.hasOwn(plans, plan) || !product.shopToken || !product.goodsKey) continue;
+    const storedLabel = version === 2 && typeof product.specLabel === 'string' ? product.specLabel : '';
+    const specLabel = reviewStoredTerm(product.title, storedLabel);
+    const corrected = specLabel !== storedLabel;
     unique.set(JSON.stringify([product.shopToken, product.goodsKey]), {
       ...product, brand, plan, legacy: version === 1,
-      comparisonKey: version === 2 && typeof product.comparisonKey === 'string' ? product.comparisonKey || null : null,
-      specLabel: version === 2 && typeof product.specLabel === 'string' ? product.specLabel : ''
+      comparisonKey: version === 2 && !corrected && typeof product.comparisonKey === 'string' ? product.comparisonKey || null : null,
+      ...(corrected && Array.isArray(product.changes) ? { changes: product.changes.filter(change => change !== 'price_drop') } : {}),
+      specLabel
     });
   }
   return [...unique.values()];
+}
+
+// Older snapshots occasionally labelled a scheduled date or usage limit as the
+// term. Keep a label if the title independently states that same duration.
+function reviewStoredTerm(title, label) {
+  if (typeof title !== 'string' || !/\d+(?:天|个月|年|小时)/u.test(label)) return label;
+  const { claims } = titleDuration(title.normalize('NFKC').toLowerCase());
+  const units = { month: '个月', year: '年', day: '天', hour: '小时' };
+  const term = claim => claim.value + units[claim.unit];
+  const conflicts = new Set(claims.filter(c => c.role === 'calendar_date' || c.role === 'usage_window').map(term));
+  if (!conflicts.size) return label;
+  for (const claim of claims) if (claim.role === 'duration') conflicts.delete(term(claim));
+  const parts = label.split(' · ');
+  const remaining = parts.filter(part => !conflicts.has(part));
+  return remaining.length === parts.length ? label : remaining.join(' · ') || '规格待核验';
 }
 
 export function availablePlans(products, brand, version) {
@@ -197,6 +336,7 @@ const stock = byId('stock');
 const brand = byId('brand');
 const sort = byId('sort');
 const change = byId('change');
+const advanced = byId('more-filters');
 const rows = byId('rows');
 const changeNames = { restocked: '本轮补货', price_drop: '同规格降价', first_seen: '首次发现' };
 const shopHosts = new Set(['wzyp.cn', 'ldxp.cn', 'www.ldxp.cn', 'pay.ldxp.cn']);
@@ -290,11 +430,9 @@ function setBrandOptions(products, desired) {
   brand.value = desired === '' || desired === 'all' ? '' : options.includes(desired) ? desired : initial;
 }
 
-function setPlanOptions(available, brandMatches) {
+function setPlanOptions(available) {
   if (!available.includes(selectedPlan)) selectedPlan = '';
-  const counts = new Map();
-  for (const p of brandMatches) counts.set(p.plan, (counts.get(p.plan) || 0) + 1);
-  const key = JSON.stringify([brand.value, available, [...counts.entries()], selectedPlan]);
+  const key = JSON.stringify([brand.value, available, selectedPlan]);
   if (key === planFilterKey) return;
   planFilterKey = key;
   const container = byId('plans');
@@ -304,11 +442,10 @@ function setPlanOptions(available, brandMatches) {
     return;
   }
   const buttons = ['', ...available].map(plan => {
-    const b = el('button', 'plan-option', plan ? plans[plan] : '全部套餐');
+    const b = el('button', 'plan-option', plan ? plans[plan] : '全部');
     b.type = 'button';
     b.dataset.plan = plan;
     b.setAttribute('aria-pressed', String(selectedPlan === plan));
-    b.append(el('span', 'option-count', plan ? counts.get(plan) || 0 : brandMatches.length));
     b.addEventListener('click', () => { selectedPlan = plan; applyFilters(); });
     return b;
   });
@@ -316,7 +453,7 @@ function setPlanOptions(available, brandMatches) {
   if (oldFocus !== null) buttons.find(b => b.dataset.plan === oldFocus)?.focus();
 }
 
-function quoteRow(product, now) {
+function quoteRow(product, group, now, openDetails) {
   const item = el('li', 'quote');
   const imageUrl = safeUrl(product.imageUrl, imageHosts);
   if (imageUrl) {
@@ -332,7 +469,7 @@ function quoteRow(product, now) {
     item.append(img);
     img.src = imageUrl;
   }
-  const details = el('div');
+  const body = el('div', 'quote-body');
   const title = el('div', 'title');
   const linkUrl = safeUrl(product.itemUrl, shopHosts, /^\/item\/[A-Za-z0-9_.-]+\/?$/);
   if (linkUrl) {
@@ -346,18 +483,35 @@ function quoteRow(product, now) {
     title.textContent = product.title;
   }
   const brandText = brands[product.brand] || brands.unknown;
-  const evidence = { description: '商品说明', category: '原店分类' }[product.brandEvidence] || '推断';
-  const identity = product.brandInferred && product.brand !== 'unknown' ? brandText + '（' + evidence + '）' : brandText;
-  const metadata = el('div', 'meta');
   const observed = observation(product);
-  metadata.append(el('span', null, product.shopName || product.shopToken), el('span', null, identity),
-    el('span', null, observed === product.observedAt ? '核验 ' + displayTime(observed) : '已随本轮完整复核'));
+  const details = el('details', 'quote-details');
+  details.dataset.quoteId = JSON.stringify([product.shopToken, product.goodsKey]);
+  details.open = openDetails.has(details.dataset.quoteId);
+  const summary = el('summary', 'quote-summary meta');
+  summary.append(el('span', 'shop-name', product.shopName || product.shopToken));
+  if (product.minQuantity > 1) summary.append(el('span', 'minimum', product.minQuantity + ' 件起购'));
+  summary.append(el('span', 'details-trigger', '详情'));
+  const facts = el('dl', 'quote-facts');
+  const fact = (label, value) => facts.append(el('dt', null, label), el('dd', null, value));
+  fact('商品规格', group.label);
+  if (!group.comparable) fact('比价条件', '部分规格仍待核对，价格为原店标价');
+  const evidence = { title: '商品标题', description: '商品说明', category: '原店分类' }[product.brandEvidence];
+  fact('所属套餐', brandText + ' ' + plans[product.plan] + (evidence ? '（依据' + evidence + '）' : ''));
+  fact('核验时间', displayTime(observed) + '（北京时间）');
+  if (Number.isSafeInteger(product.stockCount) && product.stockCount >= 0) fact('核验时库存', product.stockCount + ' 件');
   for (const [event, label] of Object.entries(changeNames)) {
     if (!hasChange(product, event)) continue;
-    const text = event === 'price_drop' ? label + ' · 原价 ' + (product.priceSymbol || '') + product.previousPrice : label;
-    metadata.append(el('span', 'change-tag', text));
+    fact('本轮变化', event === 'price_drop' ? label + ' · 原价 ' + (product.priceSymbol || '') + product.previousPrice : label);
   }
-  details.append(title, metadata);
+  details.append(summary, facts);
+  if (linkUrl) {
+    const viewItem = el('a', 'original-item', '查看原店商品 ↗');
+    viewItem.href = linkUrl;
+    viewItem.target = '_blank';
+    viewItem.rel = 'noopener noreferrer';
+    details.append(viewItem);
+  }
+  body.append(title, details);
   const numbers = el('div', 'numbers');
   const price = Number.isFinite(product.price)
     ? (product.priceSymbol || '') + product.price + (product.priceSymbol ? '' : '（币种待核）')
@@ -375,20 +529,44 @@ function quoteRow(product, now) {
   else if (Number.isFinite(product.stockCount) && product.stockCount === 0) inventory = '已缺货';
   else if (product.inStock === false) inventory = '暂不可购';
   else inventory = '库存未知';
-  numbers.append(el('span', 'price', price), el('span', 'inventory', inventory));
-  item.append(details, numbers);
+  const status = el('span', 'inventory', inventory);
+  const inventoryRecorded = ['archive', 'demo'].includes(current.manifest.source) || fresh(observed, now);
+  if (inventoryRecorded && typeof product.inStock === 'boolean') status.classList.add(product.inStock ? 'stock-yes' : 'stock-no');
+  numbers.append(el('span', 'price', price), status);
+  item.append(body, numbers);
   return item;
 }
 
-function renderGroup(group, now) {
-  const section = el('div', 'quote-group');
-  const header = el('div', 'group-header');
-  header.append(el('h3', null, brands[group.brand] + ' ' + plans[group.plan] + ' · ' + group.label),
-    el('span', null, (group.comparable ? '同规格比价' : '规格待核，仅列原店标价') + ' · ' + group.total + ' 条'));
-  const list = el('ul');
-  list.append(...group.products.map(product => quoteRow(product, now)));
-  section.append(header, list);
-  return section;
+function renderQuoteGroups(groups, now) {
+  const result = document.createDocumentFragment();
+  const openDetails = new Set([...rows.querySelectorAll('.quote-details[open]')].map(d => d.dataset.quoteId));
+  let previous, list;
+  for (const group of groups) {
+    const newPlan = previous?.brand !== group.brand || previous?.plan !== group.plan;
+    const planName = brands[group.brand] + ' ' + plans[group.plan];
+    if (newPlan || group.comparable || previous.comparable) {
+      const section = el('div', 'quote-group');
+      list = el('ul');
+      list.setAttribute('aria-label', planName + '报价');
+      if (group.comparable && group.total > 1) {
+        const header = el('div', 'group-header');
+        const label = selectedPlan && brand.value ? group.label : planName + ' · ' + group.label;
+        header.append(el('h3', null, label), el('span', null, '同规格 · ' + group.total + ' 条'));
+        section.append(header);
+      } else if (newPlan && (!selectedPlan || !brand.value)) {
+        const header = el('div', 'group-header plan-heading');
+        header.append(el('h3', null, planName));
+        section.append(header);
+      }
+      section.append(list);
+      result.append(section);
+    }
+    // Keep the original price order inside each spec group. Only the visual
+    // listing is continuous when the underlying offers cannot be compared.
+    list.append(...group.products.map(product => quoteRow(product, group, now, openDetails)));
+    previous = group;
+  }
+  return result;
 }
 
 function render() {
@@ -396,17 +574,18 @@ function render() {
   const notice = byId('notice');
   let message = loadError;
   if (!message && current?.manifest.source === 'demo') {
-    message = '演示模式。商品、价格和库存均为虚构，可试用筛选和排序。';
+    message = '离线演示 · 虚构报价';
   } else if (!message && current?.manifest.source === 'archive') {
-    message = '以下为历史采集时的原店标价，库存待复核。';
+    message = '历史报价';
   } else if (!message && current && !fresh(current.manifest.checkedAt, now)) {
-    message = '以下为上次核验的原店标价，库存待复核。';
+    message = '库存待复核';
   }
   if (current?.manifest.schemaVersion === 1) {
     message = [message, '旧版快照仅含 Team，品牌归属和规格待复核。'].filter(Boolean).join(' ');
   }
   notice.textContent = message;
   notice.hidden = !message;
+  notice.classList.toggle('notice-error', Boolean(loadError));
   const empty = byId('empty');
   if (!current) {
     byId('result-count').textContent = loadError ? '暂无可读取的报价' : '正在读取报价…';
@@ -422,11 +601,19 @@ function render() {
     return words.every(word => haystack.includes(word));
   });
   const brandMatches = pool.filter(p => !brand.value || p.brand === brand.value);
-  setPlanOptions(availablePlans(current.products, brand.value, current.manifest.schemaVersion), brandMatches);
+  setPlanOptions(availablePlans(current.products, brand.value, current.manifest.schemaVersion));
   const matches = brandMatches.filter(p => !selectedPlan || p.plan === selectedPlan);
   const groups = groupQuotes(matches, sort.value, observation);
   const shops = new Set(matches.map(product => product.shopToken));
+  byId('results-title').textContent = selectedPlan ? plans[selectedPlan] + ' 报价' : '全部报价';
   byId('result-count').textContent = matches.length + ' 件商品 · ' + shops.size + ' 家店铺';
+  const advancedCount = Number(stock.value !== defaultStock(current.manifest)) + Number(Boolean(change.value));
+  const badge = byId('filter-count');
+  badge.hidden = advancedCount === 0;
+  badge.textContent = advancedCount ? String(advancedCount) : '';
+  advanced.querySelector('summary').setAttribute('aria-label',
+    advancedCount ? '筛选，已设置 ' + advancedCount + ' 项' : '筛选库存和本轮变化');
+  byId('reset-advanced').hidden = advancedCount === 0;
   const other = byId('other-team');
   const pending = brand.value === 'chatgpt' && selectedPlan === 'team' ? pool.filter(p => p.brand === 'unknown' && p.plan === 'team').length : 0;
   other.hidden = pending === 0;
@@ -434,11 +621,12 @@ function render() {
   const checked = byId('checked-at');
   checked.dateTime = current.manifest.checkedAt;
   checked.textContent = displayTime(current.manifest.checkedAt);
+  checked.parentElement.hidden = false;
   if (current.manifest.checkedFrom) checked.title = '本轮开始 ' + displayTime(current.manifest.checkedFrom);
-  byId('coverage').textContent = '采集范围 ' + current.manifest.shopCount + ' 家店';
+  byId('coverage').textContent = '本轮采集范围 · ' + current.manifest.shopCount + ' 家店';
   pages = Math.max(1, Math.ceil(matches.length / pageSize));
   page = Math.min(page, pages);
-  rows.replaceChildren(...groupsOnPage(groups, (page - 1) * pageSize, pageSize).map(g => renderGroup(g, now)));
+  rows.replaceChildren(renderQuoteGroups(groupsOnPage(groups, (page - 1) * pageSize, pageSize), now));
   if (change.value) empty.textContent = '符合当前筛选的报价里，没有已核实的「' + changeNames[change.value] + '」记录。';
   else if (stock.value === 'recent' && current.manifest.source === 'archive') empty.textContent = '这份归档只记录当时的库存。可选择「核验时有货」查看当时可买的商品。';
   else empty.textContent = '没有符合当前筛选的报价。可切换库存范围或清除关键词。';
@@ -511,6 +699,23 @@ for (const select of [stock, sort, change]) select.addEventListener('change', ()
   applyFilters();
 });
 brand.addEventListener('change', () => { selectedPlan = ''; applyFilters(); });
+byId('reset-advanced').addEventListener('click', () => {
+  explicitStock = false;
+  stock.value = defaultStock(current?.manifest);
+  change.value = '';
+  applyFilters();
+  advanced.open = false;
+  advanced.querySelector('summary').focus();
+});
+advanced.addEventListener('keydown', event => {
+  if (event.key === 'Escape') {
+    advanced.open = false;
+    advanced.querySelector('summary').focus();
+  }
+});
+document.addEventListener('click', event => {
+  if (advanced.open && !advanced.contains(event.target)) advanced.open = false;
+});
 byId('other-team').addEventListener('click', () => {
   brand.value = 'unknown'; selectedPlan = 'team'; applyFilters();
   byId('result-count').scrollIntoView({ block: 'nearest' });
@@ -531,7 +736,7 @@ if (!embeddedDemo) {
     byId('share-result').hidden = false;
     try {
       await navigator.clipboard.writeText(url);
-      byId('share-status').textContent = '已复制。将这个网址加入浏览器收藏，下次可回到当前筛选。';
+      byId('share-status').textContent = '链接已复制，打开后会保留当前筛选。';
     } catch {
       byId('share-status').textContent = '可手动复制下方网址，或在浏览器菜单中收藏当前页面。';
       field.value = url;
@@ -553,62 +758,76 @@ update();
   <main>
     <header>
       <div class="heading">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
         <h1>链动小铺 AI 订阅比价</h1>
       </div>
       <div class="update">
-        <span>上次完整核验（北京时间）</span>
-        <time id="checked-at">暂未取得</time>
-        <span id="coverage"></span>
+        <span id="notice" class="notice" role="status" hidden></span>
+        <span class="checked-time" hidden><time id="checked-at"></time> 核验（北京时间）</span>
       </div>
     </header>
     <form id="filters" role="search" aria-label="筛选报价">
-      <label>品牌
-        <select id="brand">
-          <option value="chatgpt">ChatGPT</option>
-          <option value="">全部品牌</option>
-        </select>
-      </label>
-      <fieldset class="plans"><legend>套餐</legend><div id="plans" role="group" aria-label="套餐筛选"></div></fieldset>
-      <label class="search">搜索商品或店铺
-        <input type="search" id="query" placeholder="输入商品名称或店名" maxlength="150" autocomplete="off">
-      </label>
-      <label>库存
-        <select id="stock">
-          <option value="recent">近期核实有货</option>
-          <option value="observed">核验时有货</option>
-          <option value="all">含缺货与历史报价</option>
-        </select>
-      </label>
-      <label>排序
-        <select id="sort">
-          <option value="price_asc">组内价格从低到高</option>
-          <option value="price_desc">组内价格从高到低</option>
-          <option value="recent">组内最近核验优先</option>
-        </select>
-      </label>
+      <div class="plan-toolbar">
+        <label class="brand-field"><span class="field-label">品牌</span>
+          <select id="brand">
+            <option value="chatgpt">ChatGPT</option>
+            <option value="">全部品牌</option>
+          </select>
+        </label>
+        <fieldset class="plans"><legend>套餐</legend><div id="plans" role="group" aria-label="套餐筛选"></div></fieldset>
+      </div>
+      <div class="search-toolbar">
+        <label class="search"><span class="field-label">搜索</span>
+          <input type="search" id="query" placeholder="搜商品或店铺" maxlength="150" autocomplete="off">
+        </label>
+        <label class="sort-field"><span class="field-label">排序</span>
+          <select id="sort">
+            <option value="price_asc">组内低价优先</option>
+            <option value="price_desc">组内高价优先</option>
+            <option value="recent">最近核验优先</option>
+          </select>
+        </label>
+        <details id="more-filters" class="more-filters">
+          <summary>筛选<span id="filter-count" class="filter-count" hidden></span></summary>
+          <div class="filter-panel">
+            <p class="filter-help">不同规格分别排序。商品详情里可以核对期限、起购量和核验时间。</p>
+            <label>库存
+              <select id="stock">
+                <option value="recent">近两小时核验有货</option>
+                <option value="observed">核验时有货</option>
+                <option value="all">全部库存状态</option>
+              </select>
+            </label>
+            <label>本轮变化
+              <select id="change">
+                <option value="">全部报价</option>
+                <option value="restocked">本轮补货</option>
+                <option value="price_drop">同规格降价</option>
+                <option value="first_seen">首次发现</option>
+              </select>
+            </label>
+            <button id="reset-advanced" type="button" hidden>重置这两项</button>
+          </div>
+        </details>
+      </div>
     </form>
     <noscript><p>请开启 JavaScript 以读取和筛选报价。</p></noscript>
-    <p id="notice" class="notice" role="status" hidden></p>
-    <section id="quotes" aria-labelledby="result-count">
+    <section id="quotes" aria-labelledby="results-title">
       <div class="result-header">
-        <h2 id="result-count" aria-live="polite">正在读取报价…</h2>
+        <div class="result-heading">
+          <h2 id="results-title">全部报价</h2>
+          <p id="result-count" aria-live="polite">正在读取报价…</p>
+        </div>
         <button id="other-team" type="button" hidden></button>
         <div class="quote-actions">
-          <label>本轮变化
-            <select id="change">
-              <option value="">全部报价</option>
-              <option value="restocked">本轮补货</option>
-              <option value="price_drop">同规格降价</option>
-              <option value="first_seen">首次发现</option>
-            </select>
-          </label>
-          <button id="copy-link" type="button" hidden>复制筛选链接</button>
+          <button id="copy-link" type="button" aria-label="复制当前筛选链接" hidden>复制链接</button>
         </div>
       </div>
       <div id="share-result" class="share-result" hidden>
         <p id="share-status" role="status"></p>
         <input id="share-url" type="url" readonly hidden aria-label="长按复制当前筛选网址">
       </div>
+      <div class="column-head" aria-hidden="true"><span>商品 / 店铺</span><span>原店标价 / 库存</span></div>
       <div id="rows"></div>
       <p id="empty" class="empty" hidden></p>
       <nav id="pages" aria-label="报价分页" hidden>
@@ -617,7 +836,7 @@ update();
         <button id="next" type="button">下一页</button>
       </nav>
     </section>
-    <footer>“近期核实有货”展示近两小时核验且达到起购量的报价。</footer>
+    <footer><span id="coverage"></span></footer>
   </main>
 </body>
 </html>

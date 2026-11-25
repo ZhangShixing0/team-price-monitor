@@ -9,6 +9,21 @@ const offer = (id, more = {}) => ({
 });
 const group = (items, sort = 'price_asc') => groupQuotes(items, sort, item => item.observedAt);
 
+test('历史报价读入时纠正日期和限额误写的时长，保留独立声明的期限', () => {
+  const legacyDate = offer('date', { title:'19日8:00左右开踢', specLabel:'19天 · 10× · 头车',
+    comparisonKey:'obsolete', changes:['price_drop','restocked'] });
+  const rows = normalizeProducts([legacyDate,
+    offer('quota',{title:'月卡普通team席位，有周限有5小时 看运气',specLabel:'席位 · 1个月 · 5小时'}),
+    offer('valid',{title:'订阅19天，19日8:00开始',specLabel:'席位 · 19天',comparisonKey:'exact'}),
+    offer('short',{title:'Team席位5小时',specLabel:'席位 · 5小时'})
+  ],2);
+  assert.deepEqual(rows.map(p => p.specLabel),['10× · 头车','席位 · 1个月','席位 · 19天','席位 · 5小时']);
+  assert.equal(rows[0].comparisonKey,null);
+  assert.deepEqual(rows[0].changes,['restocked']);
+  assert.equal(rows[2].comparisonKey,'exact');
+  assert.equal(legacyDate.specLabel,'19天 · 10× · 头车');
+});
+
 test('套餐随品牌切换，商品在店内按 ID 去重', () => {
   const rows = normalizeProducts([offer('a'), offer('a', {price: 6}),
     offer('a', {shopToken: 'second'}), offer('b', {brand: 'codex', plan: 'team'}),
