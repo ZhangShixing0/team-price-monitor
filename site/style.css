@@ -17,7 +17,14 @@ h1 { font-family: Georgia, "Songti SC", "SimSun", serif; font-size: clamp(2.5rem
 .heading p { margin-top: 9px; color: var(--muted); }
 .update { display: grid; gap: 2px; text-align: right; color: var(--muted); font-size: .83rem; }
 .update time { color: var(--green); font-variant-numeric: tabular-nums; font-weight: 700; }
-form { display: grid; grid-template-columns: minmax(185px, 2fr) repeat(3, minmax(0, 1fr)); gap: 12px; padding: 24px 0; }
+form { display: grid; grid-template-columns: minmax(175px, 1.5fr) minmax(160px, 1fr) minmax(150px, 1fr); gap: 13px 20px; padding: 23px 0; }
+.plans { grid-column: span 2; min-width: 0; margin: 0; padding: 0; border: 0; }
+.plans legend { padding: 0; color: var(--muted); font-size: .85rem; margin-bottom: 5px; }
+#plans { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-height: 44px; }
+.plan-option { padding: 5px 13px; border-radius: 6px; background: #fff; white-space: nowrap; }
+.plan-option[aria-pressed="true"] { background: var(--green); color: #fff; border-color: var(--green); }
+.option-count { font-size: .76rem; margin-left: .45em; font-variant-numeric: tabular-nums; }
+.filter-hint { font-size: .85rem; color: var(--muted); }
 label { display: grid; gap: 5px; color: var(--muted); font-size: .85rem; }
 select, input, button { font: inherit; color: #192c2a; }
 select, input { width: 100%; min-height: 44px; padding: 8px 10px; font-size: .95rem; border: 1px solid #acbeb6; border-radius: 5px; background: #fff; }
@@ -30,6 +37,11 @@ section { background: #fff; border: 1px solid var(--rule); border-radius: 8px; }
 .result-header { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 13px 18px; border-bottom: 1px solid var(--rule); background: #eaf1ec; border-radius: 7px 7px 0 0; }
 h2 { font-size: 1.04rem; }
 .result-header span, .meta { font-size: .83rem; color: var(--muted); }
+#other-team { min-height: 32px; padding: 2px 0; background: transparent; color: var(--green); border: 0; font-size: .86rem; text-align: left; text-decoration: underline; text-underline-offset: 3px; }
+.group-header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 12px 18px; background: #f7f9f6; border-bottom: 1px solid var(--rule); }
+.quote-group + .quote-group { border-top: 1px solid var(--rule); }
+.group-header h3 { margin: 0; font-size: .92rem; font-weight: 650; line-height: 1.5; overflow-wrap: anywhere; }
+.group-header > span { flex-shrink: 0; max-width: 47%; font-size: .8rem; color: var(--muted); text-align: right; }
 ul { margin: 0; padding: 0; list-style: none; }
 .quote { display: grid; grid-template-columns: 44px minmax(0,1fr) max-content; align-items: start; gap: 13px; padding: 16px 18px; }
 .quote + .quote { border-top: 1px solid #e1e8e2; }
@@ -52,13 +64,15 @@ footer { margin: 18px 0 32px; color: var(--muted); font-size: .82rem; }
   main { width: min(100% - 28px, 640px); }
   header { padding-top: 28px; }
   form { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .search { grid-column: 1 / -1; }
 }
 @media (max-width: 525px) {
   header { align-items: start; flex-direction: column; gap: 12px; }
   .update { text-align: left; display: flex; flex-wrap: wrap; column-gap: 8px; }
   form { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-  form label:last-child { grid-column: 1 / -1; }
+  form label:first-child, .plans, .search { grid-column: 1 / -1; }
+  #plans { gap: 5px; }
+  .plan-option { padding: 4px 9px; }
+  .group-header { padding: 10px 11px; }
   .result-header { flex-wrap: wrap; padding: 11px; }
   .quote { grid-template-columns: 32px minmax(0, 1fr); padding: 13px 11px; gap: 4px 9px; }
   .thumb { width: 32px; height: 32px; }

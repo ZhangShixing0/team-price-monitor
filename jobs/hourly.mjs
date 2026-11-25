@@ -6,6 +6,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { classifyProduct } from '../collector/classifier.mjs';
+import { classifyChatgptOffer } from '../collector/chatgpt-offer.mjs';
 import { collectPilot, isPublicTeamOffer, readPilotConfig } from '../collector/pilot.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -119,7 +120,16 @@ function publicOffers(run, previous) {
   const ids = new Set();
   for (const raw of run.products) {
     const c = classifyProduct(raw);
-    if (!isPublicTeamOffer({ ...raw, classification: c })) continue;
+    const decision = classifyChatgptOffer(raw, c);
+    const included = decision.status === 'included';
+    // A weak Team alias remains discoverable under "unknown". Only explicitly
+    // sold Codex products may inherit that brand from a non-ChatGPT decision.
+    const codex = decision.plan === 'team' && decision.reason === 'codex_product';
+    const unconfirmedTeam = decision.plan === 'team' && decision.status === 'review' &&
+      decision.reason !== 'k12_category';
+    if (!included && (!(codex || unconfirmedTeam) || !isPublicTeamOffer({ ...raw, classification: c }))) continue;
+    const brand = included ? 'chatgpt' : codex ? 'codex' : 'unknown';
+    const plan = included ? decision.plan : 'team';
     const id = productKey(raw);
     if (ids.has(id)) throw new Error('报价商品编号重复。');
     ids.add(id);
@@ -130,23 +140,26 @@ function publicOffers(run, previous) {
     const price = Number.isFinite(raw.price) && raw.price >= 0 ? raw.price : null;
     const old = oldRows.get(id);
     const changes = [];
-    if (previous.manifest && previous.hasHistory && !previous.seen.has(id)) changes.push('first_seen');
+    if (previous.manifest?.schemaVersion === 2 && previous.hasHistory && !previous.seen.has(id)) changes.push('first_seen');
     if (old?.stockCount === 0 && inStock === true) changes.push('restocked');
-    const comparisonKey = c.comparable ? c.comparisonKey : null;
-    const historyKey = comparisonKey || c.declaredPriceHistoryKey;
-    const specificationHash = historyKey ? hash(JSON.stringify([raw.name, raw.descriptionText || '', historyKey, raw.priceSymbol, minQuantity])) : null;
+    const comparisonKey = included ? decision.comparisonKey : null;
+    // A per-item price history can also use the original strict full-spec key
+    // of a zero-stock item without ranking it against other sellers' offers.
+    const historyKey = c.comparisonKey || c.declaredPriceHistoryKey || comparisonKey;
+    const specificationHash = historyKey ? hash(JSON.stringify([brand, plan, raw.name, raw.descriptionText || '', historyKey, raw.priceSymbol, minQuantity])) : null;
     if (inStock === true && specificationHash && old?.specificationHash === specificationHash &&
         Number.isFinite(old.price) && price !== null && price < old.price) changes.push('price_drop');
     products.push({ shopToken: raw.shopToken, shopName: raw.shopName, goodsKey: raw.goodsKey, title: raw.name,
       price, priceSymbol: raw.priceSymbol || '', stockCount, minQuantity, inStock,
-      brand: c.inferredBrand || c.brand || 'unknown', brandInferred: Boolean(c.inferredBrand), form: c.form || 'unknown',
+      brand, plan, brandInferred: included && decision.evidence !== 'title', brandEvidence: included ? decision.evidence : null,
+      form: decision.form || c.form || 'unknown', specLabel: decision.specLabel || '规格待核验',
       imageUrl: publicThumbnail(raw.imageUrl), itemUrl: 'https://wzyp.cn/item/' + encodeURIComponent(raw.goodsKey), observedAt: raw.observedAt,
       comparisonKey, specificationHash, changes, ...(changes.includes('price_drop') ? { previousPrice: old.price } : {}) });
   }
   return products.sort((a, b) => productKey(a) < productKey(b) ? -1 : 1);
 }
 
-async function publish(run, config, outputDir, stateDir, previous) {
+async function publish(run, config, outputDir, stateDir, previous, source) {
   checkCoverage(run, config);
   const start = Date.parse(run.startedAt), end = Date.parse(run.finishedAt);
   const publishedAt = previous.manifest ? Date.parse(previous.manifest.checkedAt) : null;
@@ -159,8 +172,8 @@ async function publish(run, config, outputDir, stateDir, previous) {
   const products = publicOffers(run, previous);
   const semanticHash = hash(JSON.stringify(products.map(({ observedAt, ...values }) => values)));
   let sha256 = previous.manifest?.sha256;
-  if (previous.manifest?.semanticHash !== semanticHash) {
-    const file = JSON.stringify({ schemaVersion: 1, checkedAt: run.finishedAt, products }) + '\n';
+  if (previous.manifest?.schemaVersion !== 2 || previous.manifest.semanticHash !== semanticHash) {
+    const file = JSON.stringify({ schemaVersion: 2, checkedAt: run.finishedAt, products }) + '\n';
     sha256 = hash(file);
     await atomicWrite(join(outputDir, 'snapshots', sha256 + '.json'), file);
   }
@@ -170,7 +183,7 @@ async function publish(run, config, outputDir, stateDir, previous) {
   if (previous.manifest?.seenHash !== seenHash || !previous.hasHistory) {
     await atomicWrite(join(stateDir, 'history', seenHash + '.json'), ledger);
   }
-  const manifest = { schemaVersion: 1, checkedFrom: run.startedAt, checkedAt: run.finishedAt,
+  const manifest = { schemaVersion: 2, source, checkedFrom: run.startedAt, checkedAt: run.finishedAt,
     shopCount: config.shops.length, scopeCount: config.scopes.length, productCount: products.length,
     snapshot: 'snapshots/' + sha256 + '.json', sha256, semanticHash, seenHash, historyComplete: previous.hasHistory };
   // Commit point: the immutable file and the discovery ledger both exist.
@@ -178,7 +191,8 @@ async function publish(run, config, outputDir, stateDir, previous) {
   return { manifest, fileChanged: !previous.manifest || sha256 !== previous.manifest.sha256 };
 }
 
-export async function runHourly({ config, outputDir = join(root, 'site', 'data'), stateDir = join(root, '.state'), collect = collectPilot, signal } = {}) {
+export async function runHourly({ config, outputDir = join(root, 'site', 'data'), stateDir = join(root, '.state'), collect = collectPilot, signal, source = 'live' } = {}) {
+  if (!['live', 'archive'].includes(source)) throw new Error('不支持的报价来源。');
   config ??= await readPilotConfig();
   await mkdir(outputDir, { recursive: true });
   const lock = await acquireLock(outputDir);
@@ -189,6 +203,9 @@ export async function runHourly({ config, outputDir = join(root, 'site', 'data')
     transferBytes: null, transferMeasurementComplete: false, elapsedMs: 0 };
   try {
     const previous = await readBaseline(outputDir, stateDir);
+    if (previous.manifest && (previous.manifest.source || 'live') !== source) {
+      throw new Error('实时核验和历史回放需要使用各自的报价目录。');
+    }
     const run = await collect({ config, signal });
     const queries = run.queries || [];
     const completed = new Set(queries.filter(q => q.complete).map(scopeKey));
@@ -202,7 +219,7 @@ export async function runHourly({ config, outputDir = join(root, 'site', 'data')
       browserFailedRequests: stats.browserFailedRequests ?? null,
       transferMeasurementComplete: stats.transferMeasurementComplete === true, rawProductCount: run.products?.length ?? 0 });
     if (signal?.aborted) throw new Error('本轮已取消。');
-    const { manifest, fileChanged } = await publish(run, config, outputDir, stateDir, previous);
+    const { manifest, fileChanged } = await publish(run, config, outputDir, stateDir, previous, source);
     Object.assign(report, { status: 'success', published: true, checkedAt: manifest.checkedAt, snapshot: manifest.snapshot,
       fileChanged, productCount: manifest.productCount });
   } catch (error) {

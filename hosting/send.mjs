@@ -21,6 +21,7 @@ export async function sendSnapshot({ outputDir, url = process.env.PRICE_SITE_URL
   if (!url || !token) throw new Error('请同时设置 PRICE_SITE_URL 和 PRICE_SITE_TOKEN。');
   const endpoint = publishUrl(url);
   const manifest = JSON.parse(await readFile(join(outputDir, 'manifest.json'), 'utf8'));
+  if (manifest.source === 'archive') throw new Error('历史回放仅供本地查看，请选择实时核验的报价目录。');
   if (!/^[0-9a-f]{64}$/.test(manifest.sha256) || manifest.snapshot !== 'snapshots/' + manifest.sha256 + '.json') {
     throw new Error('本地报价版本地址无效。');
   }

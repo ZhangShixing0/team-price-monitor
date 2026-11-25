@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { once } from 'node:events';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { createPreviewServer } from '../scripts/preview.mjs';
 import { runHourly } from './hourly.mjs';
+import { replayArchive } from './replay.mjs';
 
 const scopes = ['a', 'b'].map(shopToken => ({ shopToken, shopName: shopToken, goodsType: 'card', categoryId: 1, categoryName: 'Team' }));
 const config = { shops: scopes.map(s => ({ shop_token: s.shopToken })), scopes };
@@ -80,6 +82,27 @@ test('unchanged prices reuse the immutable file and advance the successful verif
   assert.equal((await f.current()).manifest.checkedAt, when(2));
 });
 
+test('the first three-plan publication upgrades a Team-only directory without announcing old catalog entries as new', async t => {
+  const f = await fixture(t);
+  await f.run(sample(1, [product(scopes[0], 'existing')]));
+  const current = await f.current();
+  const legacy = current.products.map(({plan, brandEvidence, specLabel, ...p}) => p);
+  const digest = text => createHash('sha256').update(text).digest('hex');
+  const body = JSON.stringify({schemaVersion:1, checkedAt:when(1), products:legacy}) + '\n';
+  const {source, ...manifest} = current.manifest;
+  Object.assign(manifest, {schemaVersion:1, sha256:digest(body), snapshot:'snapshots/' + digest(body) + '.json',
+    semanticHash:digest(JSON.stringify(legacy.map(({observedAt, ...rest}) => rest)))});
+  await writeFile(join(f.outputDir, manifest.snapshot), body);
+  await writeFile(join(f.outputDir, 'manifest.json'), JSON.stringify(manifest));
+  const plus = product(scopes[1], 'older-plus', {name:'ChatGPT Plus 月付成品号 支持 Codex'});
+  assert.equal((await f.run(sample(2, [product(scopes[0], 'existing'), plus]))).published, true);
+  const upgraded = await f.current();
+  assert.equal(upgraded.manifest.schemaVersion, 2);
+  assert.equal(upgraded.manifest.source, 'live');
+  assert.deepEqual(upgraded.products.find(p => p.plan === 'plus').changes, []);
+  assert.equal(await readFile(join(f.outputDir, manifest.snapshot), 'utf8'), body);
+});
+
 test('events require complete rounds, known zero inventory and equivalent sale specifications', async t => {
   const f = await fixture(t);
   const soldOut = product(scopes[0], 'existing', { stockCount: 0 });
@@ -126,4 +149,42 @@ test('concurrent runs against the same public directory do not both collect or p
   assert.equal((await job).status, 'success');
   assert.equal(other.status, 'busy');
   assert.equal((await f.current()).manifest.checkedAt, when(1));
+});
+
+test('archive replay selects the configured shops, keeps original observation times and separates genuine subscriptions', async t => {
+  const dir = await mkdtemp(join(tmpdir(), 'offer-archive-test-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const input = join(dir, 'round.json'), outputDir = join(dir, 'replay');
+  const rows = [
+    product(scopes[0], 'plus', {name:'ChatGPT Plus 月付成品号 支持 Codex'}),
+    product(scopes[0], 'pro', {name:'ChatGPT Pro 月付成品号', stockCount:0}),
+    product(scopes[0], 'team'),
+    product(scopes[0], 'legacy', {name:'Codex Team 成品账号'}),
+    product(scopes[0], 'steam', {name:'Steam 礼品卡'}),
+    product(scopes[0], 'k12', {name:'ChatGPT Team K12 成品'}),
+    product(scopes[1], 'other', {name:'ChatGPT Pro 20x'}),
+  ];
+  const archive = { ...sample(1, rows), scopes };
+  await writeFile(input, JSON.stringify(archive));
+  const options = { input, outputDir, config: { shops: config.shops.slice(0, 1), scopes: scopes.slice(0, 1) } };
+  const result = await replayArchive(options);
+  assert.equal(result.rawProductCount, 6);
+  assert.equal(result.checkedAt, when(1));
+  for (const value of Object.values(result.planCounts)) assert.equal(value.products, 1);
+  assert.equal(result.planCounts.pro.inStockProducts, 0);
+  assert.equal(result.codexTeam, 1);
+  const manifest = JSON.parse(await readFile(join(outputDir, 'manifest.json'), 'utf8'));
+  assert.equal(manifest.schemaVersion, 2);
+  assert.equal(manifest.source, 'archive');
+  const snapshot = JSON.parse(await readFile(join(outputDir, manifest.snapshot), 'utf8'));
+  assert.ok(snapshot.products.every(p => p.observedAt === when(1) && p.specLabel));
+  assert.equal(snapshot.products.find(p => p.goodsKey === 'plus').brand, 'chatgpt');
+  await assert.rejects(replayArchive(options), {code:'EEXIST'});
+  const full = await replayArchive({ input, outputDir:join(dir,'all'), scope:'recorded' });
+  assert.equal(full.planCounts.pro.shops, 2);
+  archive.queries[1].complete = false;
+  await writeFile(input, JSON.stringify(archive));
+  const broken = join(dir,'incomplete');
+  await assert.rejects(replayArchive({ input, outputDir:broken, scope:'recorded' }), /分页/);
+  await assert.rejects(readFile(join(broken,'manifest.json')), {code:'ENOENT'});
 });

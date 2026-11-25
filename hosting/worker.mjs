@@ -58,10 +58,11 @@ const date = value => typeof value === 'string' && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\
 const count = value => Number.isSafeInteger(value) && value >= 0;
 const nonempty = value => typeof value === 'string' && value.length > 0;
 const boundedManifestKeys = ['schemaVersion', 'checkedFrom', 'checkedAt', 'shopCount', 'scopeCount',
-  'productCount', 'snapshot', 'sha256', 'semanticHash', 'seenHash', 'historyComplete'];
+  'productCount', 'snapshot', 'sha256', 'semanticHash', 'seenHash', 'historyComplete', 'source'];
 
 function validateManifest(m) {
-  requireValue(onlyKeys(m, boundedManifestKeys) && m.schemaVersion === 1 &&
+  requireValue(onlyKeys(m, boundedManifestKeys) &&
+    ((m.schemaVersion === 1 && m.source === undefined) || (m.schemaVersion === 2 && m.source === 'live')) &&
     date(m.checkedFrom) && date(m.checkedAt) && m.checkedFrom <= m.checkedAt &&
     Date.parse(m.checkedAt) <= Date.now() + 300000 &&
     count(m.shopCount) && m.shopCount > 0 && count(m.scopeCount) && m.scopeCount >= m.shopCount &&
@@ -74,16 +75,24 @@ function validateManifest(m) {
 const productFields = ['shopToken', 'shopName', 'goodsKey', 'title', 'price', 'priceSymbol', 'stockCount',
   'minQuantity', 'inStock', 'brand', 'brandInferred', 'form', 'imageUrl', 'itemUrl', 'observedAt',
   'comparisonKey', 'specificationHash', 'changes', 'previousPrice'];
+const v2ProductFields = [...productFields, 'plan', 'brandEvidence', 'specLabel'];
+function validPlanFields(p) {
+  if (!['plus', 'pro', 'team'].includes(p.plan) || !nonempty(p.specLabel)) return false;
+  if (p.brand === 'chatgpt') return ['title', 'description', 'category'].includes(p.brandEvidence) &&
+    p.brandInferred === (p.brandEvidence !== 'title');
+  return p.plan === 'team' && p.brandEvidence === null && p.brandInferred === false && p.comparisonKey === null;
+}
 async function validateSnapshot(m, text) {
   requireValue(typeof text === 'string' && await digest(text) === m.sha256, '报价文件校验和不匹配');
   const s = parseJson(text);
-  requireValue(onlyKeys(s, ['schemaVersion', 'checkedAt', 'products']) && s.schemaVersion === 1 &&
+  requireValue(onlyKeys(s, ['schemaVersion', 'checkedAt', 'products']) && s.schemaVersion === m.schemaVersion &&
     date(s.checkedAt) && s.checkedAt <= m.checkedAt && Array.isArray(s.products) &&
     s.products.length === m.productCount, '报价条数或版本无效');
   const ids = new Set();
   const shops = new Set();
   for (const p of s.products) {
-    requireValue(onlyKeys(p, productFields) && nonempty(p.shopToken) && nonempty(p.goodsKey) && nonempty(p.title) &&
+    requireValue(onlyKeys(p, s.schemaVersion === 2 ? v2ProductFields : productFields) &&
+      (s.schemaVersion === 1 || validPlanFields(p)) && nonempty(p.shopToken) && nonempty(p.goodsKey) && nonempty(p.title) &&
       typeof p.shopName === 'string' && typeof p.priceSymbol === 'string' &&
       (p.price === null || (Number.isFinite(p.price) && p.price >= 0)) &&
       (p.stockCount === null || count(p.stockCount)) && count(p.minQuantity) && p.minQuantity > 0 &&
@@ -112,6 +121,7 @@ async function inspectPointer(bucket, manifest) {
   if (!current) return { condition: new Headers({ 'If-None-Match': '*' }) };
   const old = await current.json();
   validateManifest(old);
+  if (old.schemaVersion > manifest.schemaVersion) throw new HttpError(409, '站点已升级，请使用新版采集程序发布。');
   if (boundedManifestKeys.every(key => old[key] === manifest[key])) return { same: true };
   if (manifest.checkedFrom < old.checkedAt || manifest.checkedAt <= old.checkedAt) {
     throw new HttpError(409, '站点已有同轮或更新的完整报价');
