@@ -18,7 +18,7 @@
         <h1>链动小铺 AI 订阅比价</h1>
       </div>
       <div class="update">
-        <span>上次完整核验</span>
+        <span>上次完整核验（北京时间）</span>
         <time id="checked-at">暂未取得</time>
         <span id="coverage"></span>
       </div>
@@ -37,6 +37,7 @@
       <label>库存
         <select id="stock">
           <option value="recent">近期核实有货</option>
+          <option value="observed">核验时有货</option>
           <option value="all">含缺货与历史报价</option>
         </select>
       </label>
@@ -54,6 +55,21 @@
       <div class="result-header">
         <h2 id="result-count" aria-live="polite">正在读取报价…</h2>
         <button id="other-team" type="button" hidden></button>
+        <div class="quote-actions">
+          <label>本轮变化
+            <select id="change">
+              <option value="">全部报价</option>
+              <option value="restocked">本轮补货</option>
+              <option value="price_drop">同规格降价</option>
+              <option value="first_seen">首次发现</option>
+            </select>
+          </label>
+          <button id="copy-link" type="button" hidden>复制筛选链接</button>
+        </div>
+      </div>
+      <div id="share-result" class="share-result" hidden>
+        <p id="share-status" role="status"></p>
+        <input id="share-url" type="url" readonly hidden aria-label="长按复制当前筛选网址">
       </div>
       <div id="rows"></div>
       <p id="empty" class="empty" hidden></p>

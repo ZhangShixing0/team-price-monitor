@@ -28,6 +28,14 @@ function stableRowOrder(a, b) {
     compareText(a.shopToken, b.shopToken) || compareText(a.goodsKey, b.goodsKey);
 }
 
+export function hasChange(product, event) {
+  if (product.legacy || !Array.isArray(product.changes) || !product.changes.includes(event)) return false;
+  if (event === 'restocked') return product.inStock === true;
+  if (event === 'price_drop') return product.inStock === true && Number.isFinite(product.previousPrice) &&
+    Number.isFinite(product.price) && product.previousPrice > product.price;
+  return event === 'first_seen';
+}
+
 export function groupQuotes(products, sort, observedTime) {
   const groups = new Map();
   for (const p of products) {

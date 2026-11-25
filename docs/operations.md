@@ -1,5 +1,11 @@
 # 自建、巡检与发布
 
+## 手机可直接访问的公开归档
+
+[公开比价页](https://zhangshixing0.github.io/team-price-monitor/)和[Team 收藏页](https://zhangshixing0.github.io/team-price-monitor/?brand=chatgpt&plan=team)使用同一份报价。核验时间来自商家数据的采集记录，重新发布网页不会刷新这个时间。首版仅有一轮可公开的历史数据。
+
+维护者可在项目根目录运行 `node scripts/build-pages.mjs`，从随仓库提供的公开归档和页面文件构建 `out/pages/`。要发布到本项目的 GitHub Pages，把该目录内容复制到 `gh-pages` 分支的根目录，保留 `.nojekyll` 和旧版清单曾引用的快照，检查改动后提交并推送。GitHub Pages 的发布源是该分支的根目录。这个步骤无需启动采集或登录商家后台。
+
 ## 在自己的电脑获取真实报价
 
 从 GitHub 下载并解压项目，或克隆当前分支。安装 Node.js 22.13 或更高版本，在有 [package.json](../package.json) 的目录打开终端并安装依赖。

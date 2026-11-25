@@ -1,4 +1,4 @@
-import { brands, plans, normalizeProducts, availablePlans, groupQuotes, groupsOnPage } from './catalog-view.mjs';
+import { brands, plans, normalizeProducts, availablePlans, groupQuotes, groupsOnPage, hasChange } from './catalog-view.mjs';
 
 const pageSize = 30;
 const freshFor = 2 * 60 * 60 * 1000;
@@ -10,28 +10,23 @@ const query = byId('query');
 const stock = byId('stock');
 const brand = byId('brand');
 const sort = byId('sort');
+const change = byId('change');
 const rows = byId('rows');
-const parameters = new URLSearchParams(location.search);
+const changeNames = { restocked: '本轮补货', price_drop: '同规格降价', first_seen: '首次发现' };
 const shopHosts = new Set(['wzyp.cn', 'ldxp.cn', 'www.ldxp.cn', 'pay.ldxp.cn']);
 const imageHosts = new Set(['qn.ldxp.cn', 'www.ldxp.cn', 'wzyp.cn']);
 const dateFormat = new Intl.DateTimeFormat('zh-CN', {
   year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit',
-  hour12: false,
+  hour12: false, timeZone: 'Asia/Shanghai',
 });
 let current = null;
 let page = 1;
 let pages = 1;
 let updating = false;
 let loadError = '';
-let selectedPlan = parameters.get('plan') || '';
+let selectedPlan = '';
 let planFilterKey = '';
-
-query.value = (parameters.get('q') || '').slice(0, 150);
-for (const field of [stock, sort]) {
-  if ([...field.options].some(option => option.value === parameters.get(field.id))) {
-    field.value = parameters.get(field.id);
-  }
-}
+let explicitStock = false;
 
 function el(tag, className, value) {
   const element = document.createElement(tag);
@@ -52,6 +47,35 @@ function displayTime(value) {
 function fresh(value, now) {
   const age = now - Date.parse(value);
   return age >= 0 && age <= freshFor;
+}
+
+function defaultStock(manifest) {
+  return manifest && (['demo', 'archive'].includes(manifest.source) || !fresh(manifest.checkedAt, Date.now())) ? 'all' : 'recent';
+}
+
+function restoreFilters() {
+  const parameters = new URLSearchParams(location.search);
+  selectedPlan = parameters.get('plan') || '';
+  query.value = (parameters.get('q') || '').slice(0, 150);
+  explicitStock = [...stock.options].some(option => option.value === parameters.get('stock'));
+  for (const [field, fallback] of [[stock, defaultStock(current?.manifest)], [sort, 'price_asc'], [change, '']]) {
+    const value = parameters.get(field.id);
+    field.value = [...field.options].some(option => option.value === value) ? value : fallback;
+  }
+  if (current) setBrandOptions(current.products, parameters.get('brand'));
+  byId('share-result').hidden = true;
+  page = 1;
+}
+
+function filterUrl() {
+  const url = new URL(location.href);
+  const wantedBrand = brand.value === 'chatgpt' && !selectedPlan ? '' : brand.value || 'all';
+  for (const [key, value] of [['brand', wantedBrand], ['plan', selectedPlan], ['q', query.value.trim()],
+    ['stock', explicitStock ? stock.value : ''], ['sort', sort.value === 'price_asc' ? '' : sort.value], ['change', change.value]]) {
+    if (value) url.searchParams.set(key, value);
+    else url.searchParams.delete(key);
+  }
+  return url;
 }
 
 function observation(product) {
@@ -142,6 +166,11 @@ function quoteRow(product, now) {
   const observed = observation(product);
   metadata.append(el('span', null, product.shopName || product.shopToken), el('span', null, identity),
     el('span', null, observed === product.observedAt ? '核验 ' + displayTime(observed) : '已随本轮完整复核'));
+  for (const [event, label] of Object.entries(changeNames)) {
+    if (!hasChange(product, event)) continue;
+    const text = event === 'price_drop' ? label + ' · 原价 ' + (product.priceSymbol || '') + product.previousPrice : label;
+    metadata.append(el('span', 'change-tag', text));
+  }
   details.append(title, metadata);
   const numbers = el('div', 'numbers');
   const price = Number.isFinite(product.price)
@@ -199,6 +228,8 @@ function render() {
   }
   const words = textKey(query.value).trim().split(/\s+/).filter(Boolean);
   const pool = current.products.filter(product => {
+    if (change.value && !hasChange(product, change.value)) return false;
+    if (stock.value === 'observed' && product.inStock !== true) return false;
     if (stock.value === 'recent' && (current.manifest.source === 'archive' || product.inStock !== true ||
       (current.manifest.source !== 'demo' && !fresh(observation(product), now)))) return false;
     const haystack = textKey([product.title, product.shopName, brands[product.brand], plans[product.plan], product.specLabel].join(' '));
@@ -222,7 +253,9 @@ function render() {
   pages = Math.max(1, Math.ceil(matches.length / pageSize));
   page = Math.min(page, pages);
   rows.replaceChildren(...groupsOnPage(groups, (page - 1) * pageSize, pageSize).map(g => renderGroup(g, now)));
-  empty.textContent = '没有符合当前筛选的报价。可切换库存范围或清除关键词。';
+  if (change.value) empty.textContent = '符合当前筛选的报价里，没有已核实的「' + changeNames[change.value] + '」记录。';
+  else if (stock.value === 'recent' && current.manifest.source === 'archive') empty.textContent = '这份归档只记录当时的库存。可选择「核验时有货」查看当时可买的商品。';
+  else empty.textContent = '没有符合当前筛选的报价。可切换库存范围或清除关键词。';
   empty.hidden = matches.length > 0;
   byId('pages').hidden = pages <= 1;
   byId('previous').disabled = page <= 1;
@@ -256,12 +289,12 @@ async function update() {
         throw new Error('报价数据格式无效');
       }
       products = normalizeProducts(products, snapshot.schemaVersion);
-      const wantedBrand = current ? brand.value : parameters.has('brand') ? parameters.get('brand') : null;
+      const wantedBrand = current ? brand.value : new URLSearchParams(location.search).get('brand');
       setBrandOptions(products, wantedBrand);
     } else if (current.manifest.productCount !== manifest.productCount) {
       throw new Error('报价数量不一致');
     }
-    if (!current && !parameters.has('stock') && (['demo', 'archive'].includes(manifest.source) || !fresh(manifest.checkedAt, Date.now()))) stock.value = 'all';
+    if (!explicitStock && (!current || current.manifest.source !== manifest.source)) stock.value = defaultStock(manifest);
     if (manifest.source === 'demo') stock.options[0].textContent = '示例有货';
     current = { manifest, products };
     loadError = '';
@@ -273,22 +306,24 @@ async function update() {
   }
 }
 
-function applyFilters() {
-  const available = current ? availablePlans(current.products, brand.value, current.manifest.schemaVersion) : [];
+function applyFilters(replace = false) {
+  if (!current) return;
+  const available = availablePlans(current.products, brand.value, current.manifest.schemaVersion);
   if (!available.includes(selectedPlan)) selectedPlan = '';
-  const url = new URL(location.href);
-  for (const [key, value, fallback] of [['q', query.value.trim(), ''], ['stock', stock.value, 'recent'],
-    ['brand', brand.value || 'all', 'chatgpt'], ['plan', selectedPlan, ''], ['sort', sort.value, 'price_asc']]) {
-    if (value === fallback) url.searchParams.delete(key);
-    else url.searchParams.set(key, value);
+  if (!embeddedDemo) {
+    const url = filterUrl();
+    if (url.href !== location.href) history[replace ? 'replaceState' : 'pushState'](null, '', url);
   }
-  if (!embeddedDemo) history.replaceState(null, '', url);
+  byId('share-result').hidden = true;
   page = 1;
   render();
 }
 filters.addEventListener('submit', event => { event.preventDefault(); applyFilters(); });
-query.addEventListener('input', applyFilters);
-for (const select of [stock, sort]) select.addEventListener('change', applyFilters);
+query.addEventListener('input', () => applyFilters(true));
+for (const select of [stock, sort, change]) select.addEventListener('change', () => {
+  if (select === stock) explicitStock = true;
+  applyFilters();
+});
 brand.addEventListener('change', () => { selectedPlan = ''; applyFilters(); });
 byId('other-team').addEventListener('click', () => {
   brand.value = 'unknown'; selectedPlan = 'team'; applyFilters();
@@ -302,7 +337,26 @@ function movePage(step) {
 byId('previous').addEventListener('click', () => movePage(-1));
 byId('next').addEventListener('click', () => movePage(1));
 if (!embeddedDemo) {
+  byId('copy-link').hidden = false;
+  byId('copy-link').addEventListener('click', async () => {
+    const url = filterUrl().href;
+    const field = byId('share-url');
+    field.hidden = true;
+    byId('share-result').hidden = false;
+    try {
+      await navigator.clipboard.writeText(url);
+      byId('share-status').textContent = '已复制。将这个网址加入浏览器收藏，下次可回到当前筛选。';
+    } catch {
+      byId('share-status').textContent = '可手动复制下方网址，或在浏览器菜单中收藏当前页面。';
+      field.value = url;
+      field.hidden = false;
+      field.focus();
+      field.select();
+    }
+  });
+  window.addEventListener('popstate', () => { restoreFilters(); render(); });
   document.addEventListener('visibilitychange', () => { if (!document.hidden) update(); });
   setInterval(() => { if (!document.hidden) update(); }, 60000);
 }
+restoreFilters();
 update();

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-4/ga//w46F/07zQa7W1VcMTDFgMuvN0MT0EpK0VVOfM=' 'sha256-1Ne9otCPCXiN4uFDKmmG3ICIDqDtHDYCyNCGFtEiPgg='; style-src 'sha256-ZVIdAD9f/VZ/cohG9BWlkn/PSxE8/9UhzEuhzIzScAs='; base-uri 'none'; form-action 'none'; connect-src 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-foY9xhoqXDzj6gX2IvUqDqwzmWV/h5a3kXtdm1iU+7w=' 'sha256-1Ne9otCPCXiN4uFDKmmG3ICIDqDtHDYCyNCGFtEiPgg='; style-src 'sha256-Ivz1MflxAM43JqXAIiS6EV3qVvlhgNBNA9TH5ghKzo0='; base-uri 'none'; form-action 'none'; connect-src 'none'">
   <title>链动小铺 AI 订阅比价</title>
   <style>:root {
   font: 16px/1.5 "DM Sans", "Microsoft YaHei", system-ui, sans-serif;
@@ -43,7 +43,14 @@ input::placeholder { color: #64736d; }
 .skip-link:focus { transform: none; }
 .notice { background: #fff3dc; color: #77500c; padding: 10px 14px; border-left: 3px solid #dbaa49; margin-bottom: 16px; }
 section { background: #fff; border: 1px solid var(--rule); border-radius: 8px; }
-.result-header { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 13px 18px; border-bottom: 1px solid var(--rule); background: #eaf1ec; border-radius: 7px 7px 0 0; }
+.result-header { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 18px; border-bottom: 1px solid var(--rule); background: #eaf1ec; border-radius: 7px 7px 0 0; }
+.quote-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-left: auto; }
+.quote-actions label { display: flex; align-items: center; white-space: nowrap; }
+.quote-actions select { width: auto; }
+.quote-actions button { min-height: 44px; color: var(--green); background: #fff; }
+.share-result { padding: 10px 18px; color: var(--green); font-size: .85rem; }
+.share-result input { margin-top: 5px; }
+.change-tag { color: var(--green); font-weight: 650; }
 h2 { font-size: 1.04rem; }
 .result-header span, .meta { font-size: .83rem; color: var(--muted); }
 #other-team { min-height: 32px; padding: 2px 0; background: transparent; color: var(--green); border: 0; font-size: .86rem; text-align: left; text-decoration: underline; text-underline-offset: 3px; }
@@ -75,14 +82,16 @@ footer { margin: 18px 0 32px; color: var(--muted); font-size: .82rem; }
   form { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 525px) {
-  header { align-items: start; flex-direction: column; gap: 12px; }
+  header { align-items: start; flex-direction: column; gap: 8px; padding: 20px 0 16px; }
+  h1 { font-size: clamp(1.65rem, 7.1vw, 2.2rem); }
   .update { text-align: left; display: flex; flex-wrap: wrap; column-gap: 8px; }
-  form { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  form { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 16px 0; }
   form label:first-child, .plans, .search { grid-column: 1 / -1; }
   #plans { gap: 5px; }
   .plan-option { padding: 4px 9px; }
   .group-header { padding: 10px 11px; }
   .result-header { flex-wrap: wrap; padding: 11px; }
+  .quote-actions { width: 100%; margin: 0; justify-content: space-between; }
   .quote { grid-template-columns: minmax(0, 1fr); padding: 13px 11px; gap: 4px 9px; }
   .quote.with-thumb { grid-template-columns: 40px minmax(0, 1fr); }
   .thumb { width: 40px; height: 40px; }
@@ -119,6 +128,14 @@ export function availablePlans(products, brand, version) {
 function stableRowOrder(a, b) {
   return compareText(a.title, b.title) || compareText(a.shopName, b.shopName) ||
     compareText(a.shopToken, b.shopToken) || compareText(a.goodsKey, b.goodsKey);
+}
+
+export function hasChange(product, event) {
+  if (product.legacy || !Array.isArray(product.changes) || !product.changes.includes(event)) return false;
+  if (event === 'restocked') return product.inStock === true;
+  if (event === 'price_drop') return product.inStock === true && Number.isFinite(product.previousPrice) &&
+    Number.isFinite(product.price) && product.previousPrice > product.price;
+  return event === 'first_seen';
 }
 
 export function groupQuotes(products, sort, observedTime) {
@@ -179,28 +196,23 @@ const query = byId('query');
 const stock = byId('stock');
 const brand = byId('brand');
 const sort = byId('sort');
+const change = byId('change');
 const rows = byId('rows');
-const parameters = new URLSearchParams(location.search);
+const changeNames = { restocked: '本轮补货', price_drop: '同规格降价', first_seen: '首次发现' };
 const shopHosts = new Set(['wzyp.cn', 'ldxp.cn', 'www.ldxp.cn', 'pay.ldxp.cn']);
 const imageHosts = new Set(['qn.ldxp.cn', 'www.ldxp.cn', 'wzyp.cn']);
 const dateFormat = new Intl.DateTimeFormat('zh-CN', {
   year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit',
-  hour12: false,
+  hour12: false, timeZone: 'Asia/Shanghai',
 });
 let current = null;
 let page = 1;
 let pages = 1;
 let updating = false;
 let loadError = '';
-let selectedPlan = parameters.get('plan') || '';
+let selectedPlan = '';
 let planFilterKey = '';
-
-query.value = (parameters.get('q') || '').slice(0, 150);
-for (const field of [stock, sort]) {
-  if ([...field.options].some(option => option.value === parameters.get(field.id))) {
-    field.value = parameters.get(field.id);
-  }
-}
+let explicitStock = false;
 
 function el(tag, className, value) {
   const element = document.createElement(tag);
@@ -221,6 +233,35 @@ function displayTime(value) {
 function fresh(value, now) {
   const age = now - Date.parse(value);
   return age >= 0 && age <= freshFor;
+}
+
+function defaultStock(manifest) {
+  return manifest && (['demo', 'archive'].includes(manifest.source) || !fresh(manifest.checkedAt, Date.now())) ? 'all' : 'recent';
+}
+
+function restoreFilters() {
+  const parameters = new URLSearchParams(location.search);
+  selectedPlan = parameters.get('plan') || '';
+  query.value = (parameters.get('q') || '').slice(0, 150);
+  explicitStock = [...stock.options].some(option => option.value === parameters.get('stock'));
+  for (const [field, fallback] of [[stock, defaultStock(current?.manifest)], [sort, 'price_asc'], [change, '']]) {
+    const value = parameters.get(field.id);
+    field.value = [...field.options].some(option => option.value === value) ? value : fallback;
+  }
+  if (current) setBrandOptions(current.products, parameters.get('brand'));
+  byId('share-result').hidden = true;
+  page = 1;
+}
+
+function filterUrl() {
+  const url = new URL(location.href);
+  const wantedBrand = brand.value === 'chatgpt' && !selectedPlan ? '' : brand.value || 'all';
+  for (const [key, value] of [['brand', wantedBrand], ['plan', selectedPlan], ['q', query.value.trim()],
+    ['stock', explicitStock ? stock.value : ''], ['sort', sort.value === 'price_asc' ? '' : sort.value], ['change', change.value]]) {
+    if (value) url.searchParams.set(key, value);
+    else url.searchParams.delete(key);
+  }
+  return url;
 }
 
 function observation(product) {
@@ -311,6 +352,11 @@ function quoteRow(product, now) {
   const observed = observation(product);
   metadata.append(el('span', null, product.shopName || product.shopToken), el('span', null, identity),
     el('span', null, observed === product.observedAt ? '核验 ' + displayTime(observed) : '已随本轮完整复核'));
+  for (const [event, label] of Object.entries(changeNames)) {
+    if (!hasChange(product, event)) continue;
+    const text = event === 'price_drop' ? label + ' · 原价 ' + (product.priceSymbol || '') + product.previousPrice : label;
+    metadata.append(el('span', 'change-tag', text));
+  }
   details.append(title, metadata);
   const numbers = el('div', 'numbers');
   const price = Number.isFinite(product.price)
@@ -368,6 +414,8 @@ function render() {
   }
   const words = textKey(query.value).trim().split(/\s+/).filter(Boolean);
   const pool = current.products.filter(product => {
+    if (change.value && !hasChange(product, change.value)) return false;
+    if (stock.value === 'observed' && product.inStock !== true) return false;
     if (stock.value === 'recent' && (current.manifest.source === 'archive' || product.inStock !== true ||
       (current.manifest.source !== 'demo' && !fresh(observation(product), now)))) return false;
     const haystack = textKey([product.title, product.shopName, brands[product.brand], plans[product.plan], product.specLabel].join(' '));
@@ -391,7 +439,9 @@ function render() {
   pages = Math.max(1, Math.ceil(matches.length / pageSize));
   page = Math.min(page, pages);
   rows.replaceChildren(...groupsOnPage(groups, (page - 1) * pageSize, pageSize).map(g => renderGroup(g, now)));
-  empty.textContent = '没有符合当前筛选的报价。可切换库存范围或清除关键词。';
+  if (change.value) empty.textContent = '符合当前筛选的报价里，没有已核实的「' + changeNames[change.value] + '」记录。';
+  else if (stock.value === 'recent' && current.manifest.source === 'archive') empty.textContent = '这份归档只记录当时的库存。可选择「核验时有货」查看当时可买的商品。';
+  else empty.textContent = '没有符合当前筛选的报价。可切换库存范围或清除关键词。';
   empty.hidden = matches.length > 0;
   byId('pages').hidden = pages <= 1;
   byId('previous').disabled = page <= 1;
@@ -425,12 +475,12 @@ async function update() {
         throw new Error('报价数据格式无效');
       }
       products = normalizeProducts(products, snapshot.schemaVersion);
-      const wantedBrand = current ? brand.value : parameters.has('brand') ? parameters.get('brand') : null;
+      const wantedBrand = current ? brand.value : new URLSearchParams(location.search).get('brand');
       setBrandOptions(products, wantedBrand);
     } else if (current.manifest.productCount !== manifest.productCount) {
       throw new Error('报价数量不一致');
     }
-    if (!current && !parameters.has('stock') && (['demo', 'archive'].includes(manifest.source) || !fresh(manifest.checkedAt, Date.now()))) stock.value = 'all';
+    if (!explicitStock && (!current || current.manifest.source !== manifest.source)) stock.value = defaultStock(manifest);
     if (manifest.source === 'demo') stock.options[0].textContent = '示例有货';
     current = { manifest, products };
     loadError = '';
@@ -442,22 +492,24 @@ async function update() {
   }
 }
 
-function applyFilters() {
-  const available = current ? availablePlans(current.products, brand.value, current.manifest.schemaVersion) : [];
+function applyFilters(replace = false) {
+  if (!current) return;
+  const available = availablePlans(current.products, brand.value, current.manifest.schemaVersion);
   if (!available.includes(selectedPlan)) selectedPlan = '';
-  const url = new URL(location.href);
-  for (const [key, value, fallback] of [['q', query.value.trim(), ''], ['stock', stock.value, 'recent'],
-    ['brand', brand.value || 'all', 'chatgpt'], ['plan', selectedPlan, ''], ['sort', sort.value, 'price_asc']]) {
-    if (value === fallback) url.searchParams.delete(key);
-    else url.searchParams.set(key, value);
+  if (!embeddedDemo) {
+    const url = filterUrl();
+    if (url.href !== location.href) history[replace ? 'replaceState' : 'pushState'](null, '', url);
   }
-  if (!embeddedDemo) history.replaceState(null, '', url);
+  byId('share-result').hidden = true;
   page = 1;
   render();
 }
 filters.addEventListener('submit', event => { event.preventDefault(); applyFilters(); });
-query.addEventListener('input', applyFilters);
-for (const select of [stock, sort]) select.addEventListener('change', applyFilters);
+query.addEventListener('input', () => applyFilters(true));
+for (const select of [stock, sort, change]) select.addEventListener('change', () => {
+  if (select === stock) explicitStock = true;
+  applyFilters();
+});
 brand.addEventListener('change', () => { selectedPlan = ''; applyFilters(); });
 byId('other-team').addEventListener('click', () => {
   brand.value = 'unknown'; selectedPlan = 'team'; applyFilters();
@@ -471,9 +523,28 @@ function movePage(step) {
 byId('previous').addEventListener('click', () => movePage(-1));
 byId('next').addEventListener('click', () => movePage(1));
 if (!embeddedDemo) {
+  byId('copy-link').hidden = false;
+  byId('copy-link').addEventListener('click', async () => {
+    const url = filterUrl().href;
+    const field = byId('share-url');
+    field.hidden = true;
+    byId('share-result').hidden = false;
+    try {
+      await navigator.clipboard.writeText(url);
+      byId('share-status').textContent = '已复制。将这个网址加入浏览器收藏，下次可回到当前筛选。';
+    } catch {
+      byId('share-status').textContent = '可手动复制下方网址，或在浏览器菜单中收藏当前页面。';
+      field.value = url;
+      field.hidden = false;
+      field.focus();
+      field.select();
+    }
+  });
+  window.addEventListener('popstate', () => { restoreFilters(); render(); });
   document.addEventListener('visibilitychange', () => { if (!document.hidden) update(); });
   setInterval(() => { if (!document.hidden) update(); }, 60000);
 }
+restoreFilters();
 update();
 </script>
 </head>
@@ -485,7 +556,7 @@ update();
         <h1>链动小铺 AI 订阅比价</h1>
       </div>
       <div class="update">
-        <span>上次完整核验</span>
+        <span>上次完整核验（北京时间）</span>
         <time id="checked-at">暂未取得</time>
         <span id="coverage"></span>
       </div>
@@ -504,6 +575,7 @@ update();
       <label>库存
         <select id="stock">
           <option value="recent">近期核实有货</option>
+          <option value="observed">核验时有货</option>
           <option value="all">含缺货与历史报价</option>
         </select>
       </label>
@@ -521,6 +593,21 @@ update();
       <div class="result-header">
         <h2 id="result-count" aria-live="polite">正在读取报价…</h2>
         <button id="other-team" type="button" hidden></button>
+        <div class="quote-actions">
+          <label>本轮变化
+            <select id="change">
+              <option value="">全部报价</option>
+              <option value="restocked">本轮补货</option>
+              <option value="price_drop">同规格降价</option>
+              <option value="first_seen">首次发现</option>
+            </select>
+          </label>
+          <button id="copy-link" type="button" hidden>复制筛选链接</button>
+        </div>
+      </div>
+      <div id="share-result" class="share-result" hidden>
+        <p id="share-status" role="status"></p>
+        <input id="share-url" type="url" readonly hidden aria-label="长按复制当前筛选网址">
       </div>
       <div id="rows"></div>
       <p id="empty" class="empty" hidden></p>

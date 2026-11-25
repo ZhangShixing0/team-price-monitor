@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeProducts, availablePlans, groupQuotes, groupsOnPage } from '../site/catalog-view.mjs';
+import { normalizeProducts, availablePlans, groupQuotes, groupsOnPage, hasChange } from '../site/catalog-view.mjs';
 
 const offer = (id, more = {}) => ({
   shopToken: 'store', goodsKey: id, shopName: '商家', title: id,
@@ -50,6 +50,19 @@ test('旧快照保留 Team，旧的比较键不进入同规格比价', () => {
   assert.deepEqual(availablePlans(rows, 'chatgpt', 1), ['team']);
   assert.equal(group(rows).length, 2);
   assert.ok(rows.every(p => p.plan === 'team' && p.legacy && !p.comparisonKey));
+});
+
+test('本轮变化只显示采集端已确认且与记录一致的事件', () => {
+  const changed = offer('a', { changes: ['price_drop', 'restocked'], previousPrice: 12, inStock: true });
+  assert.ok(hasChange(changed, 'price_drop'));
+  assert.ok(hasChange(changed, 'restocked'));
+  assert.equal(hasChange(changed, 'first_seen'), false);
+  assert.equal(hasChange({ ...changed, changes: [] }, 'price_drop'), false);
+  assert.equal(hasChange({ ...changed, previousPrice: 9 }, 'price_drop'), false);
+  assert.equal(hasChange({ ...changed, inStock: false }, 'restocked'), false);
+  assert.equal(hasChange({ ...changed, legacy: true }, 'price_drop'), false);
+  assert.equal(hasChange(offer('new'), 'first_seen'), false);
+  assert.ok(hasChange(offer('new', {changes: ['first_seen']}), 'first_seen'));
 });
 
 test('跨页保留规格分组标题及整组数量', () => {
