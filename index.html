@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' https://qn.ldxp.cn https://www.ldxp.cn https://wzyp.cn; base-uri 'none'; form-action 'none'">
+  <title>链动小铺 AI 订阅比价</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="./app.js" type="module"></script>
+</head>
+<body>
+  <a class="skip-link" href="#quotes">跳到报价</a>
+  <main>
+    <header>
+      <div class="heading">
+        <h1>链动小铺 AI 订阅比价</h1>
+      </div>
+      <div class="update">
+        <span>上次完整核验（北京时间）</span>
+        <time id="checked-at">暂未取得</time>
+        <span id="coverage"></span>
+      </div>
+    </header>
+    <form id="filters" role="search" aria-label="筛选报价">
+      <label>品牌
+        <select id="brand">
+          <option value="chatgpt">ChatGPT</option>
+          <option value="">全部品牌</option>
+        </select>
+      </label>
+      <fieldset class="plans"><legend>套餐</legend><div id="plans" role="group" aria-label="套餐筛选"></div></fieldset>
+      <label class="search">搜索商品或店铺
+        <input type="search" id="query" placeholder="输入商品名称或店名" maxlength="150" autocomplete="off">
+      </label>
+      <label>库存
+        <select id="stock">
+          <option value="recent">近期核实有货</option>
+          <option value="observed">核验时有货</option>
+          <option value="all">含缺货与历史报价</option>
+        </select>
+      </label>
+      <label>排序
+        <select id="sort">
+          <option value="price_asc">组内价格从低到高</option>
+          <option value="price_desc">组内价格从高到低</option>
+          <option value="recent">组内最近核验优先</option>
+        </select>
+      </label>
+    </form>
+    <noscript><p>请开启 JavaScript 以读取和筛选报价。</p></noscript>
+    <p id="notice" class="notice" role="status" hidden></p>
+    <section id="quotes" aria-labelledby="result-count">
+      <div class="result-header">
+        <h2 id="result-count" aria-live="polite">正在读取报价…</h2>
+        <button id="other-team" type="button" hidden></button>
+        <div class="quote-actions">
+          <label>本轮变化
+            <select id="change">
+              <option value="">全部报价</option>
+              <option value="restocked">本轮补货</option>
+              <option value="price_drop">同规格降价</option>
+              <option value="first_seen">首次发现</option>
+            </select>
+          </label>
+          <button id="copy-link" type="button" hidden>复制筛选链接</button>
+        </div>
+      </div>
+      <div id="share-result" class="share-result" hidden>
+        <p id="share-status" role="status"></p>
+        <input id="share-url" type="url" readonly hidden aria-label="长按复制当前筛选网址">
+      </div>
+      <div id="rows"></div>
+      <p id="empty" class="empty" hidden></p>
+      <nav id="pages" aria-label="报价分页" hidden>
+        <button id="previous" type="button">上一页</button>
+        <span id="page-number"></span>
+        <button id="next" type="button">下一页</button>
+      </nav>
+    </section>
+    <footer>“近期核实有货”展示近两小时核验且达到起购量的报价。</footer>
+  </main>
+</body>
+</html>
