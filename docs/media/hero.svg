@@ -1,27 +1,31 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="460" viewBox="0 0 1080 460" role="img" aria-labelledby="title description">
-  <title id="title">链动小铺跨店比价</title>
-  <desc id="description">本地候选库收录 535 个店铺入口。2026 年 11 月 18 日定向采集了 143 家店的目标分类，其中 42 家店出现可归入 ChatGPT Plus、Pro 或 Team 的商品。</desc>
-  <rect x="1" y="1" width="1078" height="458" rx="14" fill="#F6F3E9" stroke="#B8C4B5" stroke-width="2"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="454" viewBox="0 0 1080 454" role="img" aria-labelledby="title description">
+  <title id="title">买 Plus 前，先比价</title>
+  <desc id="description">2026 年 11 月 18 日，菲律宾区 ChatGPT Plus 一个月的同标题商品，ai小头标价 123.20 元，鹰鹰小铺标价 128.56 元，两店标价相差 5.36 元，交付条件待核。</desc>
+  <rect width="1080" height="454" rx="16" fill="#113F39"/>
   <g font-family="'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif">
-    <text x="52" y="93" font-size="70" font-weight="700" fill="#163E35">链动小铺跨店比价</text>
-    <g font-size="33" font-weight="550" fill="#456458">
-      <text x="55" y="153">ChatGPT Plus / Pro / Team</text>
-      <text x="1027" y="153" text-anchor="end">2026-11-18 定向采集</text>
+    <text x="54" y="96" fill="#FBF4DE" font-size="58" font-weight="700">买 Plus 前，先比价</text>
+    <text x="58" y="170" fill="#C4D8C7" font-size="34" font-weight="500">同标题商品，两店标价相差</text>
+    <g fill="#FFC47D" font-family="'Segoe UI', Arial, sans-serif">
+      <text x="52" y="309" font-size="83" font-weight="500">¥</text>
+      <text x="112" y="322" font-size="174" font-weight="700" letter-spacing="-8">5.36</text>
     </g>
-    <rect x="49" y="189" width="982" height="226" rx="12" fill="#154C3D"/>
-    <path d="M378 214V390 M704 214V390" stroke="#628574" stroke-width="2"/>
-    <g fill="#D6E9D1" font-size="33" font-weight="600">
-      <text x="82" y="254">候选店铺库</text><text x="408" y="254">当轮读取的店铺</text><text x="734" y="254">识别出套餐的店</text>
-    </g>
-    <g fill="#FFFFF1" font-weight="650">
-      <text x="79" y="352" font-size="94">535<tspan dx="9" font-size="38">个入口</tspan></text>
-      <text x="405" y="352" font-size="94">143<tspan dx="9" font-size="38">家</tspan></text>
-      <text x="731" y="352" font-size="94">42<tspan dx="9" font-size="38">家</tspan></text>
-    </g>
-    <g fill="#AECF9B">
-      <rect x="82" y="378" width="248" height="9" rx="4"/>
-      <rect x="408" y="378" width="66" height="9" rx="4"/>
-      <rect x="734" y="378" width="19" height="9" rx="4"/>
+    <path d="M58 359H537" fill="none" stroke="#5C8072" stroke-width="2"/>
+    <text x="56" y="406" fill="#F2EFDA" font-size="33">菲律宾区 Plus · 1 个月</text>
+
+    <g transform="rotate(2.2 809 228)">
+      <path d="M603 42H1018V397L1007 405L996 397L985 405L974 397L963 405L952 397L941 405L930 397L919 405L908 397L897 405L886 397L875 405L864 397L853 405L842 397L831 405L820 397L809 405L798 397L787 405L776 397L765 405L754 397L743 405L732 397L721 405L710 397L699 405L688 397L677 405L666 397L655 405L644 397L633 405L622 397L611 405L603 399Z" fill="#0B322E" transform="translate(6 8)"/>
+      <path d="M603 42H1018V397L1007 405L996 397L985 405L974 397L963 405L952 397L941 405L930 397L919 405L908 397L897 405L886 397L875 405L864 397L853 405L842 397L831 405L820 397L809 405L798 397L787 405L776 397L765 405L754 397L743 405L732 397L721 405L710 397L699 405L688 397L677 405L666 397L655 405L644 397L633 405L622 397L611 405L603 399Z" fill="#FAF1DB"/>
+      <text x="635" y="106" fill="#25362E" font-size="40" font-weight="700">原店标价</text>
+      <path d="M636 131H985 M636 294H985" fill="none" stroke="#8E9683" stroke-width="2" stroke-dasharray="8 6"/>
+      <g fill="#263B33" font-size="36">
+        <text x="634" y="195">ai小头</text>
+        <text x="634" y="266">鹰鹰小铺</text>
+      </g>
+      <g text-anchor="end" fill="#162D25" font-size="43" font-weight="700">
+        <text x="984" y="195">¥123.20</text>
+        <text x="984" y="266">¥128.56</text>
+      </g>
+      <text x="635" y="352" fill="#46584D" font-size="30">2026.11.18 采集</text>
     </g>
   </g>
 </svg>

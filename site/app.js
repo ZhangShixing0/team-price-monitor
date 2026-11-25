@@ -108,17 +108,19 @@ function setPlanOptions(available, brandMatches) {
 
 function quoteRow(product, now) {
   const item = el('li', 'quote');
-  const thumb = el('span', 'thumb', (product.shopName || '店').slice(0, 1));
-  thumb.setAttribute('aria-hidden', 'true');
   const imageUrl = safeUrl(product.imageUrl, imageHosts);
   if (imageUrl) {
-    const img = el('img');
+    const img = el('img', 'thumb');
     img.alt = '';
     img.loading = 'lazy';
     img.referrerPolicy = 'no-referrer';
-    img.addEventListener('error', () => img.remove(), { once: true });
+    img.addEventListener('error', () => {
+      img.remove();
+      item.classList.remove('with-thumb');
+    }, { once: true });
+    item.classList.add('with-thumb');
+    item.append(img);
     img.src = imageUrl;
-    thumb.append(img);
   }
   const details = el('div');
   const title = el('div', 'title');
@@ -159,7 +161,7 @@ function quoteRow(product, now) {
   else if (product.inStock === false) inventory = '暂不可购';
   else inventory = '库存未知';
   numbers.append(el('span', 'price', price), el('span', 'inventory', inventory));
-  item.append(thumb, details, numbers);
+  item.append(details, numbers);
   return item;
 }
 
